@@ -50,10 +50,10 @@ export default function DesignProjects() {
         </div>
         <div>
           <h1 className="text-3xl font-extrabold text-slate-100">
-            UI/UX & Graphics
+            Soon
           </h1>
           <p className="text-slate-400 text-xs mt-1">
-            Visual identity, mobile UI design systems, and brand graphics.
+            soon
           </p>
         </div>
       </div>
