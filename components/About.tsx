@@ -150,7 +150,7 @@ export default function About() {
               className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-sm font-semibold transition-colors"
             >
               <Download className="w-4 h-4 text-indigo-400" />
-              <span>{aboutData.ctaText}</span>
+              <span>Download CV</span>
             </motion.a>
           </div>
         </motion.div>
@@ -250,7 +250,7 @@ export default function About() {
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-600 hover:text-white text-xs font-semibold transition-colors"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    <span>Download</span>
+                    <span>Download CV</span>
                   </a>
                   <button
                     type="button"
