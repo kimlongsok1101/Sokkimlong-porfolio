@@ -71,6 +71,26 @@ const FigmaIcon = () => (
   </svg>
 );
 
+// Map of icon keys to components for dynamic rendering from DB payloads
+const ICON_MAP: Record<string, any> = {
+  ReactIcon,
+  NextjsIcon,
+  TypescriptIcon,
+  TailwindIcon,
+  NodejsIcon,
+  PostgresIcon,
+  PhotoshopIcon,
+  IllustratorIcon,
+  FigmaIcon,
+  GitIcon,
+  Layout,
+  Palette,
+  Cpu,
+  Terminal,
+  Database,
+  Sparkles,
+};
+
 // ==========================================
 // Skill Categories Configuration
 // ==========================================
@@ -148,9 +168,8 @@ export default function Skills() {
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
             <Sparkles className="w-3.5 h-3.5" />
+            {/* Tech & Design Stack */}
           </motion.div>
-          // Tech & Design Stack
-        </motion.div>
 
         <motion.h2
           initial={{ opacity: 0, y: 15 }}
@@ -171,6 +190,7 @@ export default function Skills() {
         >
           {skillsData.description}
         </motion.p>
+      </motion.div>
       </div>
 
       {/* Skill Categories Grid */}
@@ -207,7 +227,7 @@ export default function Skills() {
                 {/* Skills Grid */}
                 <div className="space-y-4">
                   {group.skills.map((skill, skillIdx) => {
-                    const SkillIcon = skill.icon;
+                                  const SkillIcon = typeof skill.icon === 'function' ? skill.icon : ICON_MAP[skill.icon] ?? (() => <div className="w-6 h-6 bg-slate-700 rounded" />);
                     return (
                       <motion.div
                         key={skill.name}
@@ -230,9 +250,9 @@ export default function Skills() {
                               {skill.name}
                             </span>
                           </div>
-                          <span className="text-xs font-mono text-indigo-400 font-bold">
-                            {skill.level}
-                          </span>
+                                        <span className="text-xs font-mono text-indigo-400 font-bold">
+                                          {skill.level}
+                                        </span>
                         </div>
 
                         {/* Animated Progress Bar */}

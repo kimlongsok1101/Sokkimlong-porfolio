@@ -544,6 +544,149 @@ export default function AdminPage() {
   };
 
   const renderSectionEditor = () => {
+    // Special editor for Skills section to allow editing groups, skills, levels, and icon keys
+    if (sectionEditor.section === "skills") {
+      const payload: any = sectionEditor.payload || {};
+      const groups: any[] = Array.isArray(payload.groups) ? payload.groups : [];
+
+      const iconOptions = [
+        "ReactIcon",
+        "NextjsIcon",
+        "TypescriptIcon",
+        "TailwindIcon",
+        "NodejsIcon",
+        "PostgresIcon",
+        "PhotoshopIcon",
+        "IllustratorIcon",
+        "FigmaIcon",
+        "GitIcon",
+        "Layout",
+        "Palette",
+        "Cpu",
+        "Terminal",
+        "Database",
+        "Sparkles",
+      ];
+
+      const updatePayload = (nextPayload: any) => setSectionEditor((cur) => ({ ...cur, payload: nextPayload }));
+
+      const updateHeadline = (value: string) => updatePayload({ ...payload, headline: value });
+      const updateDescription = (value: string) => updatePayload({ ...payload, description: value });
+
+      const addGroup = () => {
+        const next = { ...payload, groups: [...groups, { category: "New Group", description: "", icon: "Layout", skills: [{ name: "New Skill", level: "50%", icon: "ReactIcon" }] }] };
+        updatePayload(next);
+      };
+
+      const removeGroup = (idx: number) => {
+        const nextGroups = groups.filter((_, i) => i !== idx);
+        updatePayload({ ...payload, groups: nextGroups });
+      };
+
+      const updateGroupField = (idx: number, field: string, value: string) => {
+        const nextGroups = groups.map((g, i) => (i === idx ? { ...g, [field]: value } : g));
+        updatePayload({ ...payload, groups: nextGroups });
+      };
+
+      const addSkill = (groupIdx: number) => {
+        const nextGroups = groups.map((g, i) =>
+          i === groupIdx ? { ...g, skills: [...(g.skills || []), { name: "New Skill", level: "50%", icon: "ReactIcon" }] } : g
+        );
+        updatePayload({ ...payload, groups: nextGroups });
+      };
+
+      const removeSkill = (groupIdx: number, skillIdx: number) => {
+        const nextGroups = groups.map((g, i) =>
+          i === groupIdx ? { ...g, skills: (g.skills || []).filter((_: any, s: number) => s !== skillIdx) } : g
+        );
+        updatePayload({ ...payload, groups: nextGroups });
+      };
+
+      const updateSkillField = (groupIdx: number, skillIdx: number, field: string, value: string) => {
+        const nextGroups = groups.map((g, i) => {
+          if (i !== groupIdx) return g;
+          const skills = (g.skills || []).map((s: any, si: number) => (si === skillIdx ? { ...s, [field]: value } : s));
+          return { ...g, skills };
+        });
+        updatePayload({ ...payload, groups: nextGroups });
+      };
+
+      return (
+        <div className="space-y-4">
+          <label className="block">
+            <span className="text-sm text-slate-400">Headline</span>
+            <input
+              value={payload.headline ?? ""}
+              onChange={(e) => updateHeadline(e.target.value)}
+              className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none"
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm text-slate-400">Description</span>
+            <textarea
+              rows={3}
+              value={payload.description ?? ""}
+              onChange={(e) => updateDescription(e.target.value)}
+              className="mt-2 w-full rounded-3xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none"
+            />
+          </label>
+
+          <div className="space-y-4">
+            {groups.map((group, gIdx) => (
+              <div key={gIdx} className="rounded-2xl border border-slate-800 p-4 bg-slate-950/80">
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <div className="flex-1">
+                    <label className="block">
+                      <span className="text-sm text-slate-400">Group Category</span>
+                      <input value={group.category} onChange={(e) => updateGroupField(gIdx, "category", e.target.value)} className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-900 px-3 py-2 text-slate-100" />
+                    </label>
+                    <label className="block mt-2">
+                      <span className="text-sm text-slate-400">Group Description</span>
+                      <input value={group.description} onChange={(e) => updateGroupField(gIdx, "description", e.target.value)} className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-900 px-3 py-2 text-slate-100" />
+                    </label>
+                  </div>
+                  <div className="w-44">
+                    <label className="block">
+                      <span className="text-sm text-slate-400">Group Icon</span>
+                      <select value={group.icon ?? "Layout"} onChange={(e) => updateGroupField(gIdx, "icon", e.target.value)} className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-900 px-3 py-2 text-slate-100">
+                        {iconOptions.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {(group.skills || []).map((skill: any, sIdx: number) => (
+                    <div key={sIdx} className="grid grid-cols-12 gap-2 items-center">
+                      <input className="col-span-4 rounded-2xl bg-slate-900 px-3 py-2 border border-slate-800 text-slate-100" value={skill.name} onChange={(e) => updateSkillField(gIdx, sIdx, "name", e.target.value)} />
+                      <input className="col-span-2 rounded-2xl bg-slate-900 px-3 py-2 border border-slate-800 text-slate-100" value={skill.level} onChange={(e) => updateSkillField(gIdx, sIdx, "level", e.target.value)} />
+                      <select className="col-span-4 rounded-2xl bg-slate-900 px-3 py-2 border border-slate-800 text-slate-100" value={skill.icon ?? "ReactIcon"} onChange={(e) => updateSkillField(gIdx, sIdx, "icon", e.target.value)}>
+                        {iconOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                      </select>
+                      <div className="col-span-2 flex gap-2">
+                        <button type="button" onClick={() => removeSkill(gIdx, sIdx)} className="rounded-2xl bg-rose-500 px-3 py-2 text-xs font-semibold text-white">Remove</button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="pt-3">
+                    <button type="button" onClick={() => addSkill(gIdx)} className="rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Add Skill</button>
+                    <button type="button" onClick={() => removeGroup(gIdx)} className="ml-3 rounded-2xl bg-rose-500 px-4 py-2 text-sm font-semibold text-white">Remove Group</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <div>
+              <button type="button" onClick={addGroup} className="rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white">Add Group</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     const fields = getSectionEditorFields();
 
     return (
