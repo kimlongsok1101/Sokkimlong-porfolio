@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Sparkles, BookOpen, Laptop, FileText, Download, Eye, X, ExternalLink } from "lucide-react";
+import { usePageSection } from "@/lib/usePageSection";
+import { AboutSectionPayload, defaultAboutSection } from "@/lib/pageSectionDefaults";
 
 // ==========================================
 // Custom Brand SVG Icons
@@ -56,7 +58,9 @@ const socialLinks = [
 
 export default function About() {
   const [isOpenCvModal, setIsOpenCvModal] = useState(false);
-  const cvPath = "/cv.pdf";
+  const { payload } = usePageSection("about", defaultAboutSection);
+  const aboutData = payload as AboutSectionPayload;
+  const cvPath = aboutData.ctaHref ?? "/cv.pdf";
 
   return (
     <section id="about" className="py-24 px-6 max-w-6xl mx-auto relative">
@@ -71,7 +75,7 @@ export default function About() {
           <User className="w-3.5 h-3.5" /> // About Me
         </motion.div>
         <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">
-          Who is <span className="text-indigo-400">Sokkimlong</span>?
+          {aboutData.heading}
         </h2>
       </div>
 
@@ -89,15 +93,15 @@ export default function About() {
 
           <h3 className="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-indigo-400" />
-            Full-Stack Developer & MIS Specialist
+            {aboutData.subheading}
           </h3>
 
           <p className="text-slate-300 text-sm leading-relaxed mb-6">
-            Hi! I&apos;m <strong className="text-white">Sokkimlong</strong>. I combine software development skills with business technology through my degree in <strong className="text-indigo-400">Management Information Systems (MIS)</strong> at SETEC Institute.
+            {aboutData.bio}
           </p>
 
           <p className="text-slate-400 text-sm leading-relaxed mb-8">
-            I build modern web applications with sleek UI design, clear user experiences, and responsive performance using Next.js, React, and Tailwind CSS.
+            {aboutData.description}
           </p>
 
           {/* Key Stat Cards */}
@@ -134,7 +138,7 @@ export default function About() {
               className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold shadow-lg shadow-indigo-600/20 transition-colors cursor-pointer"
             >
               <Eye className="w-4 h-4" />
-              <span>View MY CV</span>
+              <span>{aboutData.ctaText}</span>
             </motion.button>
 
             {/* Download CV File Button */}
@@ -146,7 +150,7 @@ export default function About() {
               className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-sm font-semibold transition-colors"
             >
               <Download className="w-4 h-4 text-indigo-400" />
-              <span>Download CV</span>
+              <span>{aboutData.ctaText}</span>
             </motion.a>
           </div>
         </motion.div>

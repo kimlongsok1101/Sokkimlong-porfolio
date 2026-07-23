@@ -2,6 +2,8 @@
 
 import { motion, Variants } from "framer-motion";
 import { Sparkles, ArrowUpRight } from "lucide-react";
+import { usePageSection } from "@/lib/usePageSection";
+import { ContactSectionPayload, defaultContactSection } from "@/lib/pageSectionDefaults";
 
 // Platform Official SVG Icons
 const TelegramIcon = () => (
@@ -29,6 +31,9 @@ const DiscordIcon = () => (
 );
 
 export default function Contact() {
+  const { payload } = usePageSection("contact", defaultContactSection);
+  const contactData = payload as ContactSectionPayload;
+
   const socialLinks = [
     {
       name: "Telegram",
@@ -115,10 +120,10 @@ export default function Contact() {
           <Sparkles className="w-3.5 h-3.5" /> Connect With Me
         </motion.div>
         <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">
-          Let’s Build Something <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-sky-400 to-indigo-300">Great</span>
+          {contactData.heading}
         </h2>
         <p className="text-slate-400 text-sm max-w-md mx-auto mt-2">
-          Feel free to reach out through any of these platforms for collaborations or inquiries.
+          {contactData.subheading}
         </p>
       </motion.div>
 

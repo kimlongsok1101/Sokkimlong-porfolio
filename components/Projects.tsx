@@ -3,8 +3,13 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { FolderKanban, ArrowRight } from "lucide-react";
+import { usePageSection } from "@/lib/usePageSection";
+import { ProjectsSectionPayload, defaultProjectsSection } from "@/lib/pageSectionDefaults";
 
 export default function ProjectsSection() {
+  const { payload } = usePageSection("projects", defaultProjectsSection);
+  const projectData = payload as ProjectsSectionPayload;
+
   return (
     <section id="projects" className="py-20 px-6 max-w-4xl mx-auto text-center relative overflow-hidden">
       {/* Background Glow */}
@@ -28,10 +33,10 @@ export default function ProjectsSection() {
 
           <div className="text-left">
             <h3 className="text-lg font-bold text-slate-100 group-hover:text-indigo-300 transition-colors">
-              Explore Projects Showcase
+              {projectData.headline}
             </h3>
             <p className="text-xs text-slate-400">
-              Browse Fullstack, Design & Frontend categories
+              {projectData.description}
             </p>
           </div>
 

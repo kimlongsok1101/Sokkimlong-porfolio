@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import { Cpu, Terminal, Shield, Database, Layout, Sparkles, Palette } from "lucide-react";
+import { usePageSection } from "@/lib/usePageSection";
+import { SkillsSectionPayload, defaultSkillsSection } from "@/lib/pageSectionDefaults";
 
 // ==========================================
 // Custom Tech & App SVG Brand Icons
@@ -109,6 +111,9 @@ const skillCategories = [
 ];
 
 export default function Skills() {
+  const { payload } = usePageSection("skills", defaultSkillsSection);
+  const skillsData = payload as SkillsSectionPayload;
+
   return (
     <section id="skills" className="py-24 px-6 max-w-6xl mx-auto relative overflow-hidden">
       {/* Animated Glowing Ambient Orbs */}
@@ -154,7 +159,7 @@ export default function Skills() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight"
         >
-          Skills & <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-sky-400 to-indigo-300">Applications</span>
+          {skillsData.headline}
         </motion.h2>
 
         <motion.p
@@ -164,7 +169,7 @@ export default function Skills() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="text-slate-400 text-sm max-w-lg mx-auto mt-2"
         >
-          Development frameworks, database engines, and creative software I use daily.
+          {skillsData.description}
         </motion.p>
       </div>
 
