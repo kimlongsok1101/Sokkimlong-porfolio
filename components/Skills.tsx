@@ -100,10 +100,10 @@ const skillCategories = [
     icon: Layout,
     description: "Creating responsive, interactive & modern web apps",
     skills: [
-      { name: "React.js", level: "90%", icon: ReactIcon },
-      { name: "Next.js", level: "85%", icon: NextjsIcon },
-      { name: "TypeScript", level: "80%", icon: TypescriptIcon },
-      { name: "Tailwind CSS", level: "95%", icon: TailwindIcon },
+      { name: "React.js", level: "50%", icon: ReactIcon },
+      { name: "Next.js", level: "50%", icon: NextjsIcon },
+      { name: "TypeScript", level: "50%", icon: TypescriptIcon },
+      { name: "Tailwind CSS", level: "50%", icon: TailwindIcon },
     ],
   },
   {
@@ -111,10 +111,10 @@ const skillCategories = [
     icon: Database,
     description: "Building scalable APIs and managing database systems",
     skills: [
-      { name: "Node.js", level: "80%", icon: NodejsIcon },
-      { name: "PostgreSQL", level: "75%", icon: PostgresIcon },
-      { name: "MIS & Systems", level: "88%", icon: Cpu },
-      { name: "REST APIs", level: "85%", icon: Terminal },
+      { name: "Node.js", level: "50%", icon: NodejsIcon },
+      { name: "PostgreSQL", level: "50%", icon: PostgresIcon },
+      { name: "MIS & Systems", level: "50%", icon: Cpu },
+      { name: "REST APIs", level: "50%", icon: Terminal },
     ],
   },
   {
@@ -122,10 +122,10 @@ const skillCategories = [
     icon: Palette,
     description: "UI/UX wireframing, graphics, and asset design",
     skills: [
-      { name: "Adobe Photoshop", level: "85%", icon: PhotoshopIcon },
-      { name: "Adobe Illustrator", level: "80%", icon: IllustratorIcon },
-      { name: "Figma", level: "90%", icon: FigmaIcon },
-      { name: "Git & GitHub", level: "90%", icon: GitIcon },
+      { name: "Adobe Photoshop", level: "90%", icon: PhotoshopIcon },
+      { name: "Adobe Illustrator", level: "84%", icon: IllustratorIcon },
+      { name: "Figma", level: "50%", icon: FigmaIcon },
+      { name: "Git & GitHub", level: "70%", icon: GitIcon },
     ],
   },
 ];
