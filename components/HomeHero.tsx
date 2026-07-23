@@ -17,16 +17,48 @@ export default function HomeHero() {
   const [displayedCode, setDisplayedCode] = useState("");
   const [isMounted, setIsMounted] = useState(false);
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
+  
+  // Discord Status State
+  const [discordStatus, setDiscordStatus] = useState<string>("offline");
 
   useEffect(() => {
     setIsMounted(true);
 
-    // Using a brand new namespace key (visits-v3) to ensure it starts fresh from 0
+    // REPLACE WITH YOUR ACTUAL DISCORD USER ID
+    const DISCORD_USER_ID = "745943593432121465";
+
+    // Lanyard WebSocket Connection for Real-Time Status Sync
+    function connectLanyard() {
+      const socket = new WebSocket("wss://api.lanyard.rest/socket");
+
+      socket.onopen = () => {
+        socket.send(
+          JSON.stringify({
+            op: 2,
+            d: { subscribe_to_id: DISCORD_USER_ID },
+          })
+        );
+      };
+
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.t === "INIT_STATE" || data.t === "PRESENCE_UPDATE") {
+          setDiscordStatus(data.d.discord_status);
+        }
+      };
+
+      socket.onclose = () => {
+        setTimeout(connectLanyard, 5000); // Reconnect if dropped
+      };
+    }
+
+    connectLanyard();
+
+    // Visitor count logic
     const hasVisited = sessionStorage.getItem("has_visited_portfolio_v3");
 
     if (!hasVisited) {
       sessionStorage.setItem("has_visited_portfolio_v3", "true");
-      // Increment only on a brand new session, starting cleanly from 0
       fetch("https://abacus.jasoncameron.dev/hit/sokkimlong-portfolio/visits-v3")
         .then((res) => res.json())
         .then((data) => {
@@ -39,7 +71,6 @@ export default function HomeHero() {
           setVisitorCount(0);
         });
     } else {
-      // If the user already visited or refreshed in this session, fetch the current count without incrementing
       fetch("https://abacus.jasoncameron.dev/get/sokkimlong-portfolio/visits-v3")
         .then((res) => res.json())
         .then((data) => {
@@ -63,6 +94,22 @@ export default function HomeHero() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Helper mappings for Discord status color & label
+  const getStatusConfig = (status: string) => {
+    switch (status) {
+      case "online":
+        return { color: "bg-emerald-400", ping: "animate-ping", label: "Online" };
+      case "idle":
+        return { color: "bg-amber-400", ping: "", label: "Idle" };
+      case "dnd":
+        return { color: "bg-rose-500", ping: "", label: "Do Not Disturb" };
+      default:
+        return { color: "bg-slate-500", ping: "", label: "Offline" };
+    }
+  };
+
+  const currentStatus = getStatusConfig(discordStatus);
 
   return (
     <section id="home" className="min-h-screen flex flex-col justify-center items-center relative pt-28 pb-16 px-6 overflow-hidden">
@@ -121,8 +168,14 @@ export default function HomeHero() {
                 <div className="h-8 w-px bg-slate-800" />
                 <div>
                   <span className="block text-slate-400 font-medium">Status</span>
-                  <span className="text-emerald-400 font-bold flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" /> Online
+                  <span className="text-slate-200 font-bold flex items-center gap-1.5">
+                    <span className="relative flex w-2 h-2">
+                      {discordStatus === "online" && (
+                        <span className={`absolute inline-flex h-full w-full rounded-full ${currentStatus.color} opacity-75 animate-ping`} />
+                      )}
+                      <span className={`relative inline-flex rounded-full w-2 h-2 ${currentStatus.color}`} />
+                    </span>
+                    {currentStatus.label}
                   </span>
                 </div>
               </div>
