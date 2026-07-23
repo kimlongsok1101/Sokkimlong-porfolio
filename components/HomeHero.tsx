@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowDown, Sparkles, Terminal, Code2, Database } from "lucide-react";
+import { ArrowDown, Sparkles, Terminal, Code2, Database, Users } from "lucide-react";
 import { useState, useEffect } from "react";
 
 const codeSnippet = `const developer = {
@@ -16,12 +16,44 @@ const codeSnippet = `const developer = {
 export default function HomeHero() {
   const [displayedCode, setDisplayedCode] = useState("");
   const [isMounted, setIsMounted] = useState(false);
+  const [visitorCount, setVisitorCount] = useState<number | null>(null);
 
   useEffect(() => {
-    // 1. Mark as mounted on the client to avoid SSR hydration mismatch
     setIsMounted(true);
 
-    // 2. Typing effect
+    // Using a brand new namespace key (visits-v3) to ensure it starts fresh from 0
+    const hasVisited = sessionStorage.getItem("has_visited_portfolio_v3");
+
+    if (!hasVisited) {
+      sessionStorage.setItem("has_visited_portfolio_v3", "true");
+      // Increment only on a brand new session, starting cleanly from 0
+      fetch("https://abacus.jasoncameron.dev/hit/sokkimlong-portfolio/visits-v3")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && typeof data.value === "number") {
+            setVisitorCount(data.value);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load visitor count:", err);
+          setVisitorCount(0);
+        });
+    } else {
+      // If the user already visited or refreshed in this session, fetch the current count without incrementing
+      fetch("https://abacus.jasoncameron.dev/get/sokkimlong-portfolio/visits-v3")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && typeof data.value === "number") {
+            setVisitorCount(data.value);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load visitor count:", err);
+          setVisitorCount(0);
+        });
+    }
+
+    // Typing effect
     let index = 0;
     const interval = setInterval(() => {
       setDisplayedCode(codeSnippet.slice(0, index));
@@ -94,6 +126,16 @@ export default function HomeHero() {
                   </span>
                 </div>
               </div>
+
+              {/* LIVE VISITOR COUNT BADGE */}
+              <div className="mt-4 pt-3 border-t border-slate-800/50 w-full flex items-center justify-center gap-2 text-xs font-mono text-slate-300 bg-slate-950/50 py-2 rounded-xl">
+                <Users className="w-4 h-4 text-indigo-400" />
+                <span>Total Visitors:</span>
+                <span className="text-indigo-400 font-bold">
+                  {visitorCount !== null ? visitorCount.toLocaleString() : "0"}
+                </span>
+              </div>
+
             </div>
           </motion.div>
         </div>
