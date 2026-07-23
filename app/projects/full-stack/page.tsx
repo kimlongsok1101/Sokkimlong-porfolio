@@ -4,8 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Code2, Play } from "lucide-react";
 import { motion } from "framer-motion";
-
-import { getProjectsByCategory, Project } from "../../../data/projects";
+import { useProjects } from "@/lib/useProjects";
+import type { Project } from "@/data/projects";
 
 // Motion-enabled Next.js Link component (prevents legacyBehavior hydration errors)
 const MotionLink = motion(Link);
@@ -29,7 +29,7 @@ function GithubIcon({ className }: { className?: string }) {
 }
 
 export default function FullstackProjects() {
-  const projects: Project[] = getProjectsByCategory("Full Stack Websites");
+  const { projects, loading, error } = useProjects("Full Stack Websites");
 
   return (
     <main className="py-20 px-6 max-w-5xl mx-auto min-h-screen flex flex-col justify-center">
@@ -72,16 +72,23 @@ export default function FullstackProjects() {
 
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {projects.map((project: Project) => (
+        {projects.map((project: Project) => {
+          const imageSrc = project.image
+            ? /^(https?:\/\/|\/|data:)/.test(project.image)
+              ? project.image
+              : `/${project.image}`
+            : null;
+
+          return (
           <div
             key={project.id}
             className="group rounded-3xl bg-slate-900 border border-slate-800 flex flex-col justify-between overflow-hidden hover:border-indigo-500/40 transition-all duration-300 shadow-xl"
           >
             {/* Image Banner */}
             <div className="relative w-full h-48 sm:h-52 bg-slate-950 overflow-hidden border-b border-slate-800/80">
-              {project.image ? (
+              {imageSrc ? (
                 <Image
-                  src={project.image}
+                  src={imageSrc}
                   alt={project.title}
                   fill
                   className="object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out"
@@ -145,7 +152,8 @@ export default function FullstackProjects() {
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </main>
   );

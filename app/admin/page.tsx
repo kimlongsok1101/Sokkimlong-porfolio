@@ -8,6 +8,9 @@ import {
   defaultProjectsSection,
   defaultSkillsSection,
 } from "@/lib/pageSectionDefaults";
+import type { Project, ProjectCategory } from "@/data/projects";
+
+type ProjectCategoryFilter = ProjectCategory | "All";
 
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "";
 
@@ -65,6 +68,30 @@ export default function AdminPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [messageForm, setMessageForm] = useState({ name: "", email: "", content: "" });
   const [editId, setEditId] = useState<string | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectCategory, setProjectCategory] = useState<ProjectCategoryFilter>("All");
+  const [projectForm, setProjectForm] = useState<{
+    title: string;
+    description: string;
+    fullDetails: string;
+    category: ProjectCategory;
+    tags: string;
+    image: string;
+    demoUrl: string;
+    githubUrl: string;
+    featured: boolean;
+  }>({
+    title: "",
+    description: "",
+    fullDetails: "",
+    category: "Design",
+    tags: "",
+    image: "",
+    demoUrl: "",
+    githubUrl: "",
+    featured: false,
+  });
+  const [projectEditId, setProjectEditId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const isAdmin = useMemo(
@@ -112,9 +139,49 @@ export default function AdminPage() {
     if (isAdmin) {
       loadMessages();
       loadSections();
+      loadProjects(projectCategory);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      loadProjects(projectCategory);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectCategory]);
+
+  // Realtime subscription to projects table for live updates when admin adds/edits/deletes
+  useEffect(() => {
+    if (!isAdmin) return;
+    const supabase = createSupabaseClient();
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel(`admin:projects:${projectCategory}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "projects",
+          filter: projectCategory === "All" ? undefined : `category=eq.${projectCategory}`,
+        },
+        async () => {
+          await loadProjects(projectCategory);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      try {
+        supabase.removeChannel(channel);
+      } catch (e) {
+        // ignore
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, projectCategory]);
 
   const getSavedSection = (sectionName: string) =>
     sections.find((section) => section.section === sectionName);
@@ -170,6 +237,106 @@ export default function AdminPage() {
       if (matched) {
         setSectionEditor({ section: currentSection, payload: matched.payload });
       }
+    }
+    setLoading(false);
+  };
+
+  const loadProjects = async (category: ProjectCategoryFilter) => {
+    setLoading(true);
+    const url = category === "All" ? "/api/projects" : `/api/projects?category=${encodeURIComponent(category)}`;
+    const response = await fetch(url);
+    const result = await response.json();
+
+    if (!response.ok) {
+      setFeedback(result.error ?? "Unable to load projects.");
+      setProjects([]);
+      setLoading(false);
+      return;
+    }
+
+    setProjects(result.data ?? []);
+    setLoading(false);
+  };
+
+  const resetProjectForm = () => {
+    setProjectForm({
+      title: "",
+      description: "",
+      fullDetails: "",
+      category: projectCategory === "All" ? "Design" : projectCategory,
+      tags: "",
+      image: "",
+      demoUrl: "",
+      githubUrl: "",
+      featured: false,
+    });
+    setProjectEditId(null);
+  };
+
+  const handleProjectFieldChange = (field: keyof typeof projectForm, value: string | boolean) => {
+    setProjectForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const startProjectEdit = (project: Project) => {
+    setProjectEditId(project.id);
+    setProjectForm({
+      title: project.title,
+      description: project.description,
+      fullDetails: project.fullDetails ?? "",
+      category: project.category,
+      tags: project.tags.join(", "),
+      image: project.image ?? "",
+      demoUrl: project.demoUrl ?? "",
+      githubUrl: project.githubUrl ?? "",
+      featured: Boolean(project.featured),
+    });
+  };
+
+  const saveProject = async () => {
+    if (!projectForm.title || !projectForm.description || !projectForm.category) {
+      setFeedback("Please fill in project title, description, and category.");
+      return;
+    }
+
+    setLoading(true);
+    const method = projectEditId ? "PATCH" : "POST";
+    const payload = {
+      ...projectForm,
+      featured: projectForm.featured,
+      id: projectEditId,
+    };
+
+    const response = await fetch("/api/projects", {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json();
+
+    if (!response.ok) {
+      setFeedback(result.error ?? "Unable to save project.");
+    } else {
+      setFeedback(projectEditId ? "Project updated." : "Project created.");
+      resetProjectForm();
+      loadProjects(projectCategory);
+    }
+    setLoading(false);
+  };
+
+  const deleteProject = async (id: string) => {
+    setLoading(true);
+    const response = await fetch("/api/projects", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    const result = await response.json();
+
+    if (!response.ok) {
+      setFeedback(result.error ?? "Unable to delete project.");
+    } else {
+      setFeedback("Project deleted.");
+      setProjects((current) => current.filter((project) => project.id !== id));
     }
     setLoading(false);
   };
@@ -547,6 +714,191 @@ export default function AdminPage() {
                   <p className="text-slate-100 text-sm">
                     Messages are stored in Supabase and will update the public message feed instantly.
                   </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
+              <div className="flex items-center justify-between mb-4 gap-3 flex-col sm:flex-row">
+                <div>
+                  <h2 className="text-2xl font-semibold text-slate-100">Project manager</h2>
+                  <p className="text-slate-400 text-sm">Add, edit, or remove projects by category.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {(["All", "Full Stack Websites", "Design", "Frontend"] as ProjectCategoryFilter[]).map((category) => (
+                    <button
+                      key={category}
+                      type="button"
+                      onClick={() => setProjectCategory(category)}
+                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                        projectCategory === category
+                          ? "bg-indigo-600 text-white"
+                          : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
+                <div className="space-y-4">
+                  <label className="block">
+                    <span className="text-sm text-slate-400">Title</span>
+                    <input
+                      value={projectForm.title}
+                      onChange={(e) => handleProjectFieldChange("title", e.target.value)}
+                      className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-sm text-slate-400">Short description</span>
+                    <textarea
+                      rows={3}
+                      value={projectForm.description}
+                      onChange={(e) => handleProjectFieldChange("description", e.target.value)}
+                      className="mt-2 w-full rounded-3xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-sm text-slate-400">Full details</span>
+                    <textarea
+                      rows={4}
+                      value={projectForm.fullDetails}
+                      onChange={(e) => handleProjectFieldChange("fullDetails", e.target.value)}
+                      className="mt-2 w-full rounded-3xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-sm text-slate-400">Category</span>
+                    <select
+                      value={projectForm.category}
+                      onChange={(e) => handleProjectFieldChange("category", e.target.value as ProjectCategory)}
+                      className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                    >
+                      <option>Full Stack Websites</option>
+                      <option>Design</option>
+                      <option>Frontend</option>
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="text-sm text-slate-400">Tags (comma separated)</span>
+                    <input
+                      value={projectForm.tags}
+                      onChange={(e) => handleProjectFieldChange("tags", e.target.value)}
+                      className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-sm text-slate-400">Image path</span>
+                    <input
+                      value={projectForm.image}
+                      onChange={(e) => handleProjectFieldChange("image", e.target.value)}
+                      className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-sm text-slate-400">Demo URL</span>
+                    <input
+                      value={projectForm.demoUrl}
+                      onChange={(e) => handleProjectFieldChange("demoUrl", e.target.value)}
+                      className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-sm text-slate-400">GitHub URL</span>
+                    <input
+                      value={projectForm.githubUrl}
+                      onChange={(e) => handleProjectFieldChange("githubUrl", e.target.value)}
+                      className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </label>
+                  <label className="flex items-center gap-3 text-sm text-slate-400">
+                    <input
+                      type="checkbox"
+                      checked={projectForm.featured}
+                      onChange={(e) => handleProjectFieldChange("featured", e.target.checked)}
+                      className="accent-indigo-500"
+                    />
+                    Mark project as featured
+                  </label>
+                  <button
+                    type="button"
+                    onClick={saveProject}
+                    disabled={loading}
+                    className="rounded-2xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-700"
+                  >
+                    {loading ? "Saving..." : projectEditId ? "Update project" : "Create project"}
+                  </button>
+                  {projectEditId && (
+                    <button
+                      type="button"
+                      onClick={resetProjectForm}
+                      className="rounded-2xl bg-slate-700 px-5 py-3 text-sm font-semibold text-slate-100 transition hover:bg-slate-600"
+                    >
+                      Cancel edit
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  <div className="rounded-3xl border border-slate-800/80 bg-slate-950/80 p-6">
+                    <p className="text-slate-400 text-sm mb-2">Projects in {projectCategory}</p>
+                    <p className="text-3xl font-bold text-slate-100">{projects.length}</p>
+                  </div>
+                  <div className="space-y-4">
+                    {projects.length === 0 ? (
+                      <div className="rounded-3xl border border-slate-800/80 bg-slate-950/80 p-6 text-slate-400">
+                        No projects found in this category.
+                      </div>
+                    ) : (
+                      projects.map((project) => (
+                        <div
+                          key={project.id}
+                          className="rounded-3xl border border-slate-800/80 bg-slate-950/80 p-5"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-sm uppercase tracking-[0.2em] text-slate-500">{project.category}</p>
+                              <h3 className="text-xl font-semibold text-slate-100">{project.title}</h3>
+                              <p className="text-slate-400 text-sm mt-1">{project.description}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => startProjectEdit(project)}
+                                className="rounded-2xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-500"
+                              >
+                                Edit
+                              </button>
+                                <a
+                                  href={
+                                    project.category === "Full Stack Websites"
+                                      ? "/projects/full-stack"
+                                      : project.category === "Design"
+                                      ? "/projects/design"
+                                      : "/projects/frontend"
+                                  }
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="rounded-2xl bg-slate-700 px-4 py-2 text-xs font-semibold text-slate-100 transition hover:bg-slate-600"
+                                >
+                                  View on site
+                                </a>
+                              <button
+                                type="button"
+                                onClick={() => deleteProject(project.id)}
+                                className="rounded-2xl bg-rose-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-rose-400"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

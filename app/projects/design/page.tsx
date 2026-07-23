@@ -5,13 +5,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Palette, Eye, X, ExternalLink } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { getProjectsByCategory, Project } from "../../../data/projects";
+import { useProjects } from "@/lib/useProjects";
+import type { Project } from "@/data/projects";
 
 // Create an animated Next.js Link component to avoid invalid nested <a> tags
 const MotionLink = motion(Link);
 
 export default function DesignProjects() {
-  const projects: Project[] = getProjectsByCategory("Design");
+  const { projects, loading, error } = useProjects("Design");
 
   // Selected image for the modal popup
   const [selectedImage, setSelectedImage] = useState<{
@@ -67,19 +68,28 @@ export default function DesignProjects() {
           >
             {/* Image Preview Area */}
             <div className="relative w-full h-56 bg-slate-950 overflow-hidden border-b border-slate-800/80">
-              {project.image ? (
-                <Image
-                  src={project.image}
-                  alt={project.title}
-                  fill
-                  className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-              ) : (
+              {/** Normalize image src: allow absolute URLs, data URIs, or add leading slash for relative paths */}
+              {(() => {
+                const imageSrc = project.image
+                  ? /^(https?:\/\/|\/|data:)/.test(project.image)
+                    ? project.image
+                    : `/${project.image}`
+                  : null;
+
+                return imageSrc ? (
+                  <Image
+                    src={imageSrc}
+                    alt={project.title}
+                    fill
+                    className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                ) : (
                 <div className="w-full h-full flex items-center justify-center text-slate-700">
                   <Palette className="w-10 h-10" />
                 </div>
-              )}
+                );
+              })()}
 
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80" />
             </div>
@@ -109,11 +119,18 @@ export default function DesignProjects() {
 
               {/* Action Buttons */}
               <div className="flex items-center gap-3 pt-2">
-                {project.image && (
+                {(() => {
+                  const imageSrc = project.image
+                    ? /^(https?:\/\/|\/|data:)/.test(project.image)
+                      ? project.image
+                      : `/${project.image}`
+                    : null;
+
+                  return imageSrc ? (
                   <button
                     onClick={() =>
                       setSelectedImage({
-                        src: project.image,
+                        src: imageSrc,
                         title: project.title,
                       })
                     }
@@ -121,7 +138,8 @@ export default function DesignProjects() {
                   >
                     <Eye className="w-4 h-4" /> Preview
                   </button>
-                )}
+                  ) : null;
+                })()}
 
                 {project.demoUrl && (
                   <a

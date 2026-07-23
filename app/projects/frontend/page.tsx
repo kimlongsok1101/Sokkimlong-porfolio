@@ -5,13 +5,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Palette, Eye, X, ExternalLink } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { getProjectsByCategory, Project } from "../../../data/projects";
+import { useProjects } from "@/lib/useProjects";
+import type { Project } from "@/data/projects";
 
 // Motion-enabled Next.js Link component
 const MotionLink = motion(Link);
 
-export default function DesignProjects() {
-  const projects: Project[] = getProjectsByCategory("Design");
+export default function FrontendProjects() {
+  const { projects, loading, error } = useProjects("Frontend");
 
   // Selected image for the modal popup
   const [selectedImage, setSelectedImage] = useState<{
@@ -60,16 +61,23 @@ export default function DesignProjects() {
 
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {projects.map((project: Project) => (
+        {projects.map((project: Project) => {
+          const imageSrc = project.image
+            ? /^(https?:\/\/|\/|data:)/.test(project.image)
+              ? project.image
+              : `/${project.image}`
+            : null;
+
+          return (
           <div
             key={project.id}
             className="group rounded-3xl bg-slate-900 border border-slate-800 flex flex-col justify-between overflow-hidden hover:border-purple-500/40 transition-all duration-300 shadow-xl"
           >
             {/* Image Preview Area */}
             <div className="relative w-full h-56 bg-slate-950 overflow-hidden border-b border-slate-800/80">
-              {project.image ? (
+              {imageSrc ? (
                 <Image
-                  src={project.image}
+                  src={imageSrc}
                   alt={project.title}
                   fill
                   className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
@@ -109,11 +117,11 @@ export default function DesignProjects() {
 
               {/* Action Buttons */}
               <div className="flex items-center gap-3 pt-2">
-                {project.image && (
+                {imageSrc && (
                   <button
                     onClick={() =>
                       setSelectedImage({
-                        src: project.image,
+                        src: imageSrc,
                         title: project.title,
                       })
                     }
@@ -137,7 +145,8 @@ export default function DesignProjects() {
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Smooth Popup Lightbox */}

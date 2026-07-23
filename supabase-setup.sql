@@ -23,7 +23,56 @@ create policy "Allow public select on messages"
 -- This policy is intentionally broad for admin dashboard use; narrow it if you want a stricter rule.
 create policy "Allow authenticated write on messages"
   on public.messages
-  for insert, update, delete
+  for all
+  using (auth.role() = 'authenticated')
+  with check (auth.role() = 'authenticated');
+
+-- Create the page_sections table if it does not already exist.
+create table if not exists public.page_sections (
+  section text primary key,
+  payload jsonb not null,
+  updated_at timestamptz default now()
+);
+
+alter table public.page_sections enable row level security;
+
+create policy "Allow public select on page sections"
+  on public.page_sections
+  for select
+  using (true);
+
+create policy "Allow authenticated write on page sections"
+  on public.page_sections
+  for all
+  using (auth.role() = 'authenticated')
+  with check (auth.role() = 'authenticated');
+
+-- Create the projects table if it does not already exist.
+create table if not exists public.projects (
+  id uuid default gen_random_uuid() primary key,
+  title text not null,
+  description text not null,
+  fullDetails text,
+  category text not null,
+  tags text[] not null default '{}',
+  image text,
+  demoUrl text,
+  githubUrl text,
+  featured boolean default false,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table public.projects enable row level security;
+
+create policy "Allow public select on projects"
+  on public.projects
+  for select
+  using (true);
+
+create policy "Allow authenticated write on projects"
+  on public.projects
+  for all
   using (auth.role() = 'authenticated')
   with check (auth.role() = 'authenticated');
 
