@@ -6,6 +6,22 @@ const missingClientResponse = NextResponse.json(
   { status: 500 }
 );
 
+export async function GET() {
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) return missingClientResponse;
+
+  const { data, error } = await supabase
+    .from("messages")
+    .select("id, name, email, content, created_at")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ data });
+}
+
 export async function POST(request: Request) {
   const supabase = createSupabaseAdminClient();
   if (!supabase) return missingClientResponse;

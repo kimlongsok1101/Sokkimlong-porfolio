@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Star } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabaseClient";
 import {
   defaultAboutSection,
@@ -9,6 +10,7 @@ import {
   defaultSkillsSection,
 } from "@/lib/pageSectionDefaults";
 import type { Project, ProjectCategory } from "@/data/projects";
+import { PROJECT_CATEGORIES } from "@/data/projects";
 
 type ProjectCategoryFilter = ProjectCategory | "All";
 
@@ -80,6 +82,7 @@ export default function AdminPage() {
     demoUrl: string;
     githubUrl: string;
     featured: boolean;
+    rating: string;
   }>({
     title: "",
     description: "",
@@ -90,9 +93,30 @@ export default function AdminPage() {
     demoUrl: "",
     githubUrl: "",
     featured: false,
+    rating: "",
   });
   const [projectEditId, setProjectEditId] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<{ name: string; url: string }[]>([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+
+  const selectedImage = imageFiles.find((image) => image.url === projectForm.image) ?? null;
+  const projectRating = Number(projectForm.rating) || 0;
+
+  const projectCategoryOptions: ProjectCategoryFilter[] = ["All", ...PROJECT_CATEGORIES];
+
+  const getProjectCategoryRoute = (category: string) => {
+    switch (category) {
+      case "Full Stack Websites":
+        return "/projects/full-stack";
+      case "Design":
+        return "/projects/design";
+      case "Frontend":
+        return "/projects/frontend";
+      default:
+        return "/projects";
+    }
+  };
 
   const isAdmin = useMemo(
     () => sessionEmail?.toLowerCase() === ADMIN_EMAIL.toLowerCase(),
@@ -140,6 +164,7 @@ export default function AdminPage() {
       loadMessages();
       loadSections();
       loadProjects(projectCategory);
+      loadProjectImages();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
@@ -183,6 +208,36 @@ export default function AdminPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin, projectCategory]);
 
+  useEffect(() => {
+    if (!isAdmin) return;
+    const supabase = createSupabaseClient();
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel("admin:messages")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "messages",
+        },
+        async () => {
+          await loadMessages();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      try {
+        supabase.removeChannel(channel);
+      } catch (e) {
+        // ignore
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin]);
+
   const getSavedSection = (sectionName: string) =>
     sections.find((section) => section.section === sectionName);
 
@@ -196,26 +251,22 @@ export default function AdminPage() {
 
   const loadMessages = async () => {
     setLoading(true);
-    const supabase = createSupabaseClient();
-    if (!supabase) {
-      setFeedback(
-        "Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY."
-      );
-      setLoading(false);
-      return;
-    }
 
-    const { data, error } = await supabase
-      .from("messages")
-      .select("id, name, email, content, created_at")
-      .order("created_at", { ascending: false });
+    try {
+      const response = await fetch("/api/messages");
+      const result = await response.json();
 
-    if (error) {
-      setFeedback(error.message);
+      if (!response.ok) {
+        setFeedback(result.error ?? "Unable to load messages.");
+        setMessages([]);
+      } else {
+        setMessages(result.data ?? []);
+      }
+    } catch {
+      setFeedback("Unable to load messages.");
       setMessages([]);
-    } else if (data) {
-      setMessages(data);
     }
+
     setLoading(false);
   };
 
@@ -258,6 +309,51 @@ export default function AdminPage() {
     setLoading(false);
   };
 
+  const loadProjectImages = async () => {
+    try {
+      const response = await fetch("/api/project-images");
+      const result = await response.json();
+      if (response.ok && Array.isArray(result.data)) {
+        setImageFiles(
+          result.data.map((item: { name: string; url: string }) => ({
+            name: item.name,
+            url: item.url,
+          }))
+        );
+      }
+    } catch {
+      // ignore image load failures silently
+    }
+  };
+
+  const uploadProjectImage = async (file: File) => {
+    setUploadingImage(true);
+    setFeedback(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/project-images", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        setFeedback(result.error ?? "Unable to upload image.");
+      } else {
+        setFeedback(`Uploaded ${result.data.name}`);
+        setProjectForm((current) => ({ ...current, image: result.data.url }));
+        await loadProjectImages();
+      }
+    } catch {
+      setFeedback("Unable to upload image.");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const resetProjectForm = () => {
     setProjectForm({
       title: "",
@@ -269,6 +365,7 @@ export default function AdminPage() {
       demoUrl: "",
       githubUrl: "",
       featured: false,
+      rating: "",
     });
     setProjectEditId(null);
   };
@@ -289,6 +386,7 @@ export default function AdminPage() {
       demoUrl: project.demoUrl ?? "",
       githubUrl: project.githubUrl ?? "",
       featured: Boolean(project.featured),
+      rating: project.rating != null ? String(project.rating) : "",
     });
   };
 
@@ -303,6 +401,7 @@ export default function AdminPage() {
     const payload = {
       ...projectForm,
       featured: projectForm.featured,
+      rating: projectForm.rating ? Number(projectForm.rating) : null,
       id: projectEditId,
     };
 
@@ -868,7 +967,7 @@ export default function AdminPage() {
                   <p className="text-slate-400 text-sm">Add, edit, or remove projects by category.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {(["All", "Full Stack Websites", "Design", "Frontend"] as ProjectCategoryFilter[]).map((category) => (
+                  {projectCategoryOptions.map((category) => (
                     <button
                       key={category}
                       type="button"
@@ -920,9 +1019,11 @@ export default function AdminPage() {
                       onChange={(e) => handleProjectFieldChange("category", e.target.value as ProjectCategory)}
                       className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                     >
-                      <option>Full Stack Websites</option>
-                      <option>Design</option>
-                      <option>Frontend</option>
+                      {PROJECT_CATEGORIES.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
                     </select>
                   </label>
                   <label className="block">
@@ -934,13 +1035,54 @@ export default function AdminPage() {
                     />
                   </label>
                   <label className="block">
-                    <span className="text-sm text-slate-400">Image path</span>
+                    <span className="text-sm text-slate-400">Upload project image</span>
                     <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          uploadProjectImage(file);
+                          e.target.value = "";
+                        }
+                      }}
+                      className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none file:rounded-2xl file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-slate-100 file:cursor-pointer"
+                    />
+                    {uploadingImage ? (
+                      <p className="mt-2 text-xs text-slate-400">Uploading image...</p>
+                    ) : null}
+                  </label>
+                  <label className="block">
+                    <span className="text-sm text-slate-400">Select image from folder</span>
+                    <select
                       value={projectForm.image}
                       onChange={(e) => handleProjectFieldChange("image", e.target.value)}
                       className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-                    />
+                    >
+                      <option value="">Select project image</option>
+                      {imageFiles.map((image) => (
+                        <option key={image.url} value={image.url}>
+                          {image.name}
+                        </option>
+                      ))}
+                    </select>
                   </label>
+                  {selectedImage ? (
+                    <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-3">
+                      <span className="text-sm text-slate-400">Selected image:</span>
+                      <div className="mt-2 flex items-center gap-3">
+                        <img
+                          src={selectedImage.url}
+                          alt={selectedImage.name}
+                          className="h-20 w-20 rounded-2xl object-cover border border-slate-800"
+                        />
+                        <div className="truncate">
+                          <p className="text-slate-100 text-sm font-semibold">{selectedImage.name}</p>
+                          <p className="text-slate-400 text-xs truncate">{selectedImage.url}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
                   <label className="block">
                     <span className="text-sm text-slate-400">Demo URL</span>
                     <input
@@ -954,6 +1096,40 @@ export default function AdminPage() {
                     <input
                       value={projectForm.githubUrl}
                       onChange={(e) => handleProjectFieldChange("githubUrl", e.target.value)}
+                      className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-sm text-slate-400">Rating</span>
+                    <div className="mt-2 flex gap-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setProjectForm((current) => ({ ...current, rating: String(star) }))}
+                          className={`rounded-2xl border border-slate-800 px-3 py-2 transition ${
+                            star <= projectRating ? "bg-amber-500/20 text-amber-300 border-amber-400" : "bg-slate-950/90 text-slate-500 hover:border-slate-600 hover:text-slate-100"
+                          }`}
+                          aria-label={`Set rating to ${star} stars`}
+                        >
+                          <Star className="w-5 h-5" />
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2">
+                      {projectRating > 0 ? `${projectRating} star${projectRating === 1 ? "" : "s"}` : "No rating selected"}
+                    </p>
+                  </label>
+                  <label className="block">
+                    <span className="text-sm text-slate-400">Exact rating</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="5"
+                      step="0.1"
+                      value={projectForm.rating}
+                      onChange={(e) => handleProjectFieldChange("rating", e.target.value)}
+                      placeholder="e.g. 4.5"
                       className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                     />
                   </label>
@@ -1006,6 +1182,20 @@ export default function AdminPage() {
                               <p className="text-sm uppercase tracking-[0.2em] text-slate-500">{project.category}</p>
                               <h3 className="text-xl font-semibold text-slate-100">{project.title}</h3>
                               <p className="text-slate-400 text-sm mt-1">{project.description}</p>
+                              {project.rating != null ? (
+                                <div className="mt-3 flex items-center gap-1 text-amber-300 text-sm">
+                                  {Array.from({ length: 5 }, (_, index) => {
+                                    const ratingValue = Number(project.rating ?? 0);
+                                    return (
+                                      <Star
+                                        key={index}
+                                        className={`w-4 h-4 ${index < Math.round(ratingValue) ? "text-amber-400" : "text-slate-600"}`}
+                                      />
+                                    );
+                                  })}
+                                  <span className="text-slate-400 ml-2">{Number(project.rating ?? 0).toFixed(1)}</span>
+                                </div>
+                              ) : null}
                             </div>
                             <div className="flex items-center gap-2">
                               <button
@@ -1016,13 +1206,7 @@ export default function AdminPage() {
                                 Edit
                               </button>
                                 <a
-                                  href={
-                                    project.category === "Full Stack Websites"
-                                      ? "/projects/full-stack"
-                                      : project.category === "Design"
-                                      ? "/projects/design"
-                                      : "/projects/frontend"
-                                  }
+                                  href={getProjectCategoryRoute(project.category)}
                                   target="_blank"
                                   rel="noreferrer"
                                   className="rounded-2xl bg-slate-700 px-4 py-2 text-xs font-semibold text-slate-100 transition hover:bg-slate-600"

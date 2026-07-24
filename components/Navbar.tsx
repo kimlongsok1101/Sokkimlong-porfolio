@@ -9,6 +9,7 @@ const navLinks = [
   { name: "About", href: "#about" },
   { name: "Skills", href: "#skills" },
   { name: "Projects", href: "#projects" },
+  { name: "Support", href: "#support" },
   { name: "Contact", href: "#contact" },
 ];
 
@@ -127,11 +128,11 @@ export default function Navbar() {
         {/* Call to Action Button */}
         <div className="hidden md:block">
           <a
-            href="#contact"
-            onClick={(e) => handleNavClick(e, "#contact")}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-slate-100 text-xs font-mono font-semibold hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-600/25"
+            href="#support"
+            onClick={(e) => handleNavClick(e, "#support")}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500 text-slate-950 text-xs font-mono font-semibold hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/25"
           >
-            <Code2 className="w-3.5 h-3.5" /> Let&apos;s Talk
+            <Code2 className="w-3.5 h-3.5" /> Support Me
           </a>
         </div>
 
@@ -168,7 +169,7 @@ export default function Navbar() {
                       isActive ? "text-indigo-400 font-bold" : "text-slate-300 hover:text-indigo-400"
                     }`}
                   >
-                    // {link.name}
+                    {link.name}
                   </a>
                 );
               })}

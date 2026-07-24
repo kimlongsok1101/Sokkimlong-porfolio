@@ -9,13 +9,15 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        // REPLACE with your actual Vercel project's deployed domain
-        // or a wildcard for all subdomains under that domain.
-        // For example: hostname: 'your-project-name.vercel.app',
-        // Or using wildcard:
-        hostname: '*.vercel.app', 
+        hostname: 'oaymlrersakgnekalfdi.supabase.co',
         port: '',
-        pathname: '/projects/**', // Optional: strict restrict to this folder
+        pathname: '/storage/v1/object/public/projects/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/projects/**',
       },
       // IMPORTANT: Also allow localhost if you serve these locally during development
       {

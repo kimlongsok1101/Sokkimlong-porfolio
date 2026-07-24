@@ -3,8 +3,9 @@ import HomeHero from "@/components/HomeHero";
 import About from "@/components/About";
 import Skills from "@/components/Skills";
 import Projects from "@/components/Projects";
-import Contact from "@/components/Contact";
+import PayCoffeeMe from "@/components/PayCoffeeMe";
 import MessageFeed from "@/components/MessageFeed";
+import Contact from "@/components/Contact";
 import MatrixRain from "@/components/MatrixRain"; // Or ParticleGrid
 
 export default function Home() {
@@ -20,6 +21,7 @@ export default function Home() {
         <About />
         <Skills />
         <Projects />
+        <PayCoffeeMe />
         <MessageFeed />
         <Contact />
       </div>

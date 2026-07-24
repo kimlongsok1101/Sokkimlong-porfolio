@@ -21,6 +21,19 @@ function normalizeTags(tags: unknown) {
   return [];
 }
 
+function normalizeRating(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.max(0, Math.min(5, value));
+  }
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    if (!Number.isNaN(parsed)) {
+      return Math.max(0, Math.min(5, parsed));
+    }
+  }
+  return null;
+}
+
 function normalizeProjectRow(row: any) {
   return {
     id: row.id,
@@ -33,6 +46,7 @@ function normalizeProjectRow(row: any) {
     demoUrl: row.demourl ?? null,
     githubUrl: row.githuburl ?? null,
     featured: Boolean(row.featured),
+    rating: normalizeRating(row.rating),
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
@@ -53,7 +67,7 @@ export async function GET(request: Request) {
   let query = supabase
     .from("projects")
     .select(
-      "id,title,description,fulldetails,category,tags,image,demourl,githuburl,featured,created_at,updated_at"
+      "id,title,description,fulldetails,category,tags,image,demourl,githuburl,featured,rating,created_at,updated_at"
     )
     .order("created_at", { ascending: false });
 
@@ -74,7 +88,7 @@ export async function POST(request: Request) {
   if (!supabase) return missingClientResponse;
 
   const body = await request.json();
-  const { title, description, fullDetails, category, tags, image, demoUrl, githubUrl, featured } = body;
+  const { title, description, fullDetails, category, tags, image, demoUrl, githubUrl, featured, rating } = body;
 
   if (!title || !description || !category) {
     return NextResponse.json(
@@ -93,6 +107,7 @@ export async function POST(request: Request) {
     demourl: demoUrl ?? null,
     githuburl: githubUrl ?? null,
     featured: Boolean(featured),
+    rating: normalizeRating(rating),
   };
 
   const { data, error } = await supabase
@@ -112,7 +127,7 @@ export async function PATCH(request: Request) {
   if (!supabase) return missingClientResponse;
 
   const body = await request.json();
-  const { id, title, description, fullDetails, category, tags, image, demoUrl, githubUrl, featured } = body;
+  const { id, title, description, fullDetails, category, tags, image, demoUrl, githubUrl, featured, rating } = body;
 
   if (!id || !title || !description || !category) {
     return NextResponse.json(
@@ -131,6 +146,7 @@ export async function PATCH(request: Request) {
     demourl: demoUrl ?? null,
     githuburl: githubUrl ?? null,
     featured: Boolean(featured),
+    rating: normalizeRating(rating),
     updated_at: new Date().toISOString(),
   };
 

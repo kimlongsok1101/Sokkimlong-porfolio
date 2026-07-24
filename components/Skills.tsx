@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Cpu, Terminal, Shield, Database, Layout, Sparkles, Palette } from "lucide-react";
+import { Cpu, Terminal, Database, Layout, Sparkles, Palette } from "lucide-react";
 import { usePageSection } from "@/lib/usePageSection";
 import { SkillsSectionPayload, defaultSkillsSection } from "@/lib/pageSectionDefaults";
 
@@ -91,48 +91,16 @@ const ICON_MAP: Record<string, any> = {
   Sparkles,
 };
 
-// ==========================================
-// Skill Categories Configuration
-// ==========================================
-const skillCategories = [
-  {
-    category: "Frontend Development",
-    icon: Layout,
-    description: "Creating responsive, interactive & modern web apps",
-    skills: [
-      { name: "React.js", level: "50%", icon: ReactIcon },
-      { name: "Next.js", level: "50%", icon: NextjsIcon },
-      { name: "TypeScript", level: "50%", icon: TypescriptIcon },
-      { name: "Tailwind CSS", level: "50%", icon: TailwindIcon },
-    ],
-  },
-  {
-    category: "Backend & Systems",
-    icon: Database,
-    description: "Building scalable APIs and managing database systems",
-    skills: [
-      { name: "Node.js", level: "50%", icon: NodejsIcon },
-      { name: "PostgreSQL", level: "50%", icon: PostgresIcon },
-      { name: "MIS & Systems", level: "50%", icon: Cpu },
-      { name: "REST APIs", level: "50%", icon: Terminal },
-    ],
-  },
-  {
-    category: "Design & Creative Tools",
-    icon: Palette,
-    description: "UI/UX wireframing, graphics, and asset design",
-    skills: [
-      { name: "Adobe Photoshop", level: "90%", icon: PhotoshopIcon },
-      { name: "Adobe Illustrator", level: "84%", icon: IllustratorIcon },
-      { name: "Figma", level: "50%", icon: FigmaIcon },
-      { name: "Git & GitHub", level: "70%", icon: GitIcon },
-    ],
-  },
-];
+const DefaultSkillIcon = () => (
+  <div className="w-6 h-6 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 text-[10px]">
+    ?
+  </div>
+);
 
 export default function Skills() {
   const { payload } = usePageSection("skills", defaultSkillsSection);
   const skillsData = payload as SkillsSectionPayload;
+  const skillGroups = Array.isArray(skillsData.groups) && skillsData.groups.length > 0 ? skillsData.groups : defaultSkillsSection.groups;
 
   return (
     <section id="skills" className="py-24 px-6 max-w-6xl mx-auto relative overflow-hidden">
@@ -195,11 +163,12 @@ export default function Skills() {
 
       {/* Skill Categories Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
-        {skillCategories.map((group, groupIdx) => {
-          const CategoryIcon = group.icon;
+        {skillGroups.map((group, groupIdx) => {
+          const CategoryIcon = typeof group.icon === "string" ? ICON_MAP[group.icon] ?? Layout : Layout;
+          const skills = Array.isArray(group.skills) ? group.skills : [];
           return (
             <motion.div
-              key={group.category}
+              key={group.category + groupIdx}
               initial={{ opacity: 0, y: 30, scale: 0.95 }}
               whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
@@ -226,8 +195,12 @@ export default function Skills() {
 
                 {/* Skills Grid */}
                 <div className="space-y-4">
-                  {group.skills.map((skill, skillIdx) => {
-                                  const SkillIcon = typeof skill.icon === 'function' ? skill.icon : ICON_MAP[skill.icon] ?? (() => <div className="w-6 h-6 bg-slate-700 rounded" />);
+                  {skills.map((skill, skillIdx) => {
+                    const SkillIcon = skill.icon
+                      ? typeof skill.icon === "function"
+                        ? skill.icon
+                        : ICON_MAP[skill.icon] ?? DefaultSkillIcon
+                      : DefaultSkillIcon;
                     return (
                       <motion.div
                         key={skill.name}

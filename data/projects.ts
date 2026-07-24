@@ -2,6 +2,12 @@
 
 export type ProjectCategory = "Full Stack Websites" | "Design" | "Frontend" | "Mobile";
 
+export const PROJECT_CATEGORIES: ProjectCategory[] = [
+  "Full Stack Websites",
+  "Design",
+  "Frontend",
+];
+
 export interface Project {
   id: string;
   title: string;
@@ -13,14 +19,15 @@ export interface Project {
   demoUrl?: string;
   githubUrl?: string;
   featured?: boolean;
+  rating?: number;
 }
 
 export const projectsData: Project[] = [
   {
     id: "movie-streaming-app",
     title: "Movie Streaming & Rental Platform",
-    description: "A clean streaming web app with Bakong bank payment integration, prompt-based AI watch assistant, and user watchlists.",
-    fullDetails: "Built with Next.js App Router and Tailwind CSS. Features full Bakong KHQR payment integration, user authentication, and an AI prompt assistant to search and filter movies effortlessly.",
+    description: "A clean streaming web app with prompt-based AI watch assistant and user watchlists.",
+    fullDetails: "Built with Next.js App Router and Tailwind CSS. Features user authentication and an AI prompt assistant to search and filter movies effortlessly.",
     category: "Full Stack Websites",
     tags: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Bakong API"],
     image: "/projects/gate.jpg",
@@ -61,6 +68,7 @@ export const projectsData: Project[] = [
     demoUrl: "https://example.com",
     githubUrl: "https://github.com/example/portfolio",
     featured: false,
+    rating: 4.1,
   },
 ];
 

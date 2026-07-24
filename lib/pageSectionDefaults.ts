@@ -10,11 +10,13 @@ export type AboutSectionPayload = {
 export type SkillItem = {
   name: string;
   level: string;
+  icon?: string;
 };
 
 export type SkillGroup = {
   category: string;
   description: string;
+  icon?: string;
   skills: SkillItem[];
 };
 
@@ -60,31 +62,34 @@ export const defaultSkillsSection: SkillsSectionPayload = {
     {
       category: "Frontend Development",
       description: "Creating responsive, interactive & modern web apps",
+      icon: "Layout",
       skills: [
-        { name: "React.js", level: "90%" },
-        { name: "Next.js", level: "85%" },
-        { name: "TypeScript", level: "80%" },
-        { name: "Tailwind CSS", level: "95%" },
+        { name: "React.js", level: "90%", icon: "ReactIcon" },
+        { name: "Next.js", level: "85%", icon: "NextjsIcon" },
+        { name: "TypeScript", level: "80%", icon: "TypescriptIcon" },
+        { name: "Tailwind CSS", level: "95%", icon: "TailwindIcon" },
       ],
     },
     {
       category: "Backend & Systems",
       description: "Building scalable APIs and managing database systems",
+      icon: "Database",
       skills: [
-        { name: "Node.js", level: "80%" },
-        { name: "PostgreSQL", level: "75%" },
-        { name: "MIS & Systems", level: "88%" },
-        { name: "REST APIs", level: "85%" },
+        { name: "Node.js", level: "80%", icon: "NodejsIcon" },
+        { name: "PostgreSQL", level: "75%", icon: "PostgresIcon" },
+        { name: "MIS & Systems", level: "88%", icon: "Cpu" },
+        { name: "REST APIs", level: "85%", icon: "Terminal" },
       ],
     },
     {
       category: "Design & Creative Tools",
       description: "UI/UX wireframing, graphics, and asset design",
+      icon: "Palette",
       skills: [
-        { name: "Adobe Photoshop", level: "85%" },
-        { name: "Adobe Illustrator", level: "80%" },
-        { name: "Figma", level: "90%" },
-        { name: "Git & GitHub", level: "90%" },
+        { name: "Adobe Photoshop", level: "85%", icon: "PhotoshopIcon" },
+        { name: "Adobe Illustrator", level: "80%", icon: "IllustratorIcon" },
+        { name: "Figma", level: "90%", icon: "FigmaIcon" },
+        { name: "Git & GitHub", level: "90%", icon: "GitIcon" },
       ],
     },
   ],
