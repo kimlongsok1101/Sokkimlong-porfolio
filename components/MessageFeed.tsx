@@ -129,8 +129,12 @@ export default function MessageFeed() {
           Messages From Visitors
         </h2>
         <p className="mt-3 text-slate-400 max-w-2xl mx-auto text-sm sm:text-base">
-          This feed updates instantly when the admin adds, edits, or removes messages.
+          Enjoying the content? If you'd like to support the channel and help me upgrade my setup (or keep me fueled on coffee during long streams), you can drop a tip right here!
         </p>
+        <p className="mt-3 text-slate-400 max-w-2xl mx-auto text-sm sm:text-base">
+          Please note: Tips are totally optional, never required, but insanely appreciated. Thank you for being awesome!
+        </p>
+        💬 Leave a Message: Drop a note with your donation so I can read it and shout you out on stream
       </div>
 
       <div className="space-y-4">
