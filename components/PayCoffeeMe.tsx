@@ -16,7 +16,7 @@ export default function PayCoffeeMe() {
             </div>
             <h2 className="mt-4 text-3xl font-extrabold text-slate-100 sm:text-4xl">Support my work</h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-400">
-              Tap the button to open the bank QR image and scan it with your bank app. No API, no payment form, just the QR image.
+              If you like what I do and want to support my work, a small tip goes a long way. Thank you for your generosity!
             </p>
           </div>
 
@@ -55,7 +55,7 @@ export default function PayCoffeeMe() {
                 className="mx-auto max-h-[32rem] w-full max-w-md rounded-3xl object-contain"
               />
               <p className="mt-5 text-sm text-slate-400">
-                Scan the QR code from your bank app to send support. Replace <code className="rounded bg-slate-800 px-1 py-0.5 text-amber-200">/qr.jpg</code> with your bank image if needed.
+                Scan the QR code from your bank app to send support. Replace <code className="rounded bg-slate-800 px-1 py-0.5 text-amber-200">And</code> Thank you for Buy me a coffee! ☕
               </p>
             </div>
           </div>
