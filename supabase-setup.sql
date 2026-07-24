@@ -14,14 +14,14 @@ create table if not exists public.messages (
 alter table public.messages enable row level security;
 
 -- Public read policy: allow anyone to select messages.
-create policy "Allow public select on messages"
+create policy if not exists "Allow public select on messages"
   on public.messages
   for select
   using (true);
 
 -- Authenticated admin policy: allow authenticated users to insert, update, delete messages.
 -- This policy is intentionally broad for admin dashboard use; narrow it if you want a stricter rule.
-create policy "Allow authenticated write on messages"
+create policy if not exists "Allow authenticated write on messages"
   on public.messages
   for all
   using (auth.role() = 'authenticated')
@@ -36,12 +36,12 @@ create table if not exists public.page_sections (
 
 alter table public.page_sections enable row level security;
 
-create policy "Allow public select on page sections"
+create policy if not exists "Allow public select on page sections"
   on public.page_sections
   for select
   using (true);
 
-create policy "Allow authenticated write on page sections"
+create policy if not exists "Allow authenticated write on page sections"
   on public.page_sections
   for all
   using (auth.role() = 'authenticated')
@@ -59,18 +59,19 @@ create table if not exists public.projects (
   demoUrl text,
   githubUrl text,
   featured boolean default false,
+  rating numeric,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
 
 alter table public.projects enable row level security;
 
-create policy "Allow public select on projects"
+create policy if not exists "Allow public select on projects"
   on public.projects
   for select
   using (true);
 
-create policy "Allow authenticated write on projects"
+create policy if not exists "Allow authenticated write on projects"
   on public.projects
   for all
   using (auth.role() = 'authenticated')

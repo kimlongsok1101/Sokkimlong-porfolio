@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Star } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabaseClient";
 import {
   defaultAboutSection,
@@ -80,9 +79,7 @@ export default function AdminPage() {
     tags: string;
     image: string;
     demoUrl: string;
-    githubUrl: string;
     featured: boolean;
-    rating: string;
   }>({
     title: "",
     description: "",
@@ -91,9 +88,7 @@ export default function AdminPage() {
     tags: "",
     image: "",
     demoUrl: "",
-    githubUrl: "",
     featured: false,
-    rating: "",
   });
   const [projectEditId, setProjectEditId] = useState<string | null>(null);
   const [imageFiles, setImageFiles] = useState<{ name: string; url: string }[]>([]);
@@ -101,7 +96,6 @@ export default function AdminPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const selectedImage = imageFiles.find((image) => image.url === projectForm.image) ?? null;
-  const projectRating = Number(projectForm.rating) || 0;
 
   const projectCategoryOptions: ProjectCategoryFilter[] = ["All", ...PROJECT_CATEGORIES];
 
@@ -363,9 +357,7 @@ export default function AdminPage() {
       tags: "",
       image: "",
       demoUrl: "",
-      githubUrl: "",
       featured: false,
-      rating: "",
     });
     setProjectEditId(null);
   };
@@ -384,9 +376,7 @@ export default function AdminPage() {
       tags: project.tags.join(", "),
       image: project.image ?? "",
       demoUrl: project.demoUrl ?? "",
-      githubUrl: project.githubUrl ?? "",
       featured: Boolean(project.featured),
-      rating: project.rating != null ? String(project.rating) : "",
     });
   };
 
@@ -401,7 +391,6 @@ export default function AdminPage() {
     const payload = {
       ...projectForm,
       featured: projectForm.featured,
-      rating: projectForm.rating ? Number(projectForm.rating) : null,
       id: projectEditId,
     };
 
@@ -1084,55 +1073,14 @@ export default function AdminPage() {
                     </div>
                   ) : null}
                   <label className="block">
-                    <span className="text-sm text-slate-400">Demo URL</span>
+                    <span className="text-sm text-slate-400">Website URL</span>
                     <input
                       value={projectForm.demoUrl}
                       onChange={(e) => handleProjectFieldChange("demoUrl", e.target.value)}
                       className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                     />
                   </label>
-                  <label className="block">
-                    <span className="text-sm text-slate-400">GitHub URL</span>
-                    <input
-                      value={projectForm.githubUrl}
-                      onChange={(e) => handleProjectFieldChange("githubUrl", e.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-sm text-slate-400">Rating</span>
-                    <div className="mt-2 flex gap-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => setProjectForm((current) => ({ ...current, rating: String(star) }))}
-                          className={`rounded-2xl border border-slate-800 px-3 py-2 transition ${
-                            star <= projectRating ? "bg-amber-500/20 text-amber-300 border-amber-400" : "bg-slate-950/90 text-slate-500 hover:border-slate-600 hover:text-slate-100"
-                          }`}
-                          aria-label={`Set rating to ${star} stars`}
-                        >
-                          <Star className="w-5 h-5" />
-                        </button>
-                      ))}
-                    </div>
-                    <p className="text-xs text-slate-500 mt-2">
-                      {projectRating > 0 ? `${projectRating} star${projectRating === 1 ? "" : "s"}` : "No rating selected"}
-                    </p>
-                  </label>
-                  <label className="block">
-                    <span className="text-sm text-slate-400">Exact rating</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="5"
-                      step="0.1"
-                      value={projectForm.rating}
-                      onChange={(e) => handleProjectFieldChange("rating", e.target.value)}
-                      placeholder="e.g. 4.5"
-                      className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-                    />
-                  </label>
+
                   <label className="flex items-center gap-3 text-sm text-slate-400">
                     <input
                       type="checkbox"
@@ -1182,20 +1130,6 @@ export default function AdminPage() {
                               <p className="text-sm uppercase tracking-[0.2em] text-slate-500">{project.category}</p>
                               <h3 className="text-xl font-semibold text-slate-100">{project.title}</h3>
                               <p className="text-slate-400 text-sm mt-1">{project.description}</p>
-                              {project.rating != null ? (
-                                <div className="mt-3 flex items-center gap-1 text-amber-300 text-sm">
-                                  {Array.from({ length: 5 }, (_, index) => {
-                                    const ratingValue = Number(project.rating ?? 0);
-                                    return (
-                                      <Star
-                                        key={index}
-                                        className={`w-4 h-4 ${index < Math.round(ratingValue) ? "text-amber-400" : "text-slate-600"}`}
-                                      />
-                                    );
-                                  })}
-                                  <span className="text-slate-400 ml-2">{Number(project.rating ?? 0).toFixed(1)}</span>
-                                </div>
-                              ) : null}
                             </div>
                             <div className="flex items-center gap-2">
                               <button

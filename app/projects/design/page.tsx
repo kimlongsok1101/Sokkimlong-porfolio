@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Palette, Eye, X, ExternalLink } from "lucide-react";
+import { ArrowLeft, Palette, Eye, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useProjects } from "@/lib/useProjects";
 import type { Project } from "@/data/projects";
@@ -126,18 +126,6 @@ export default function DesignProjects() {
                       <Eye className="w-4 h-4" /> Preview
                     </button>
                   ) : null}
-
-                  {project.demoUrl && (
-                    <a
-                      href={project.demoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-semibold transition-all active:scale-95"
-                      aria-label="View Link"
-                    >
-                      <ExternalLink className="w-4 h-4" /> Link
-                    </a>
-                  )}
                 </div>
               </div>
             </div>

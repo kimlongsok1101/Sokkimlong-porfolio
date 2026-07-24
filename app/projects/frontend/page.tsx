@@ -51,10 +51,10 @@ export default function FrontendProjects() {
         </div>
         <div>
           <h1 className="text-3xl font-extrabold text-slate-100">
-            Soon
+            Fontend Websites
           </h1>
           <p className="text-slate-400 text-xs mt-1">
-            soon
+            Frontend web applications, landing pages, and UI components.
           </p>
         </div>
       </div>

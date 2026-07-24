@@ -134,7 +134,7 @@ export default function FullstackProjects() {
                     rel="noreferrer"
                     className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-all shadow-md shadow-indigo-600/20 active:scale-95"
                   >
-                    <Play className="w-3.5 h-3.5 fill-current" /> Live Demo
+                    <Play className="w-3.5 h-3.5 fill-current" /> CHECK
                   </a>
                 )}
 
