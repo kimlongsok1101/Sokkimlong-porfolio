@@ -8,6 +8,7 @@ import {
   defaultProjectsSection,
   defaultSkillsSection,
 } from "@/lib/pageSectionDefaults";
+import { resolveIcon, ICON_MAP, DefaultSkillIcon } from "@/components/Skills";
 import type { Project, ProjectCategory } from "@/data/projects";
 import { PROJECT_CATEGORIES } from "@/data/projects";
 
@@ -720,52 +721,68 @@ export default function AdminPage() {
           </label>
 
           <div className="space-y-4">
-            {groups.map((group, gIdx) => (
-              <div key={gIdx} className="rounded-2xl border border-slate-800 p-4 bg-slate-950/80">
-                <div className="flex items-center justify-between gap-3 mb-3">
-                  <div className="flex-1">
-                    <label className="block">
-                      <span className="text-sm text-slate-400">Group Category</span>
-                      <input value={group.category} onChange={(e) => updateGroupField(gIdx, "category", e.target.value)} className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-900 px-3 py-2 text-slate-100" />
-                    </label>
-                    <label className="block mt-2">
-                      <span className="text-sm text-slate-400">Group Description</span>
-                      <input value={group.description} onChange={(e) => updateGroupField(gIdx, "description", e.target.value)} className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-900 px-3 py-2 text-slate-100" />
-                    </label>
-                  </div>
-                  <div className="w-44">
-                    <label className="block">
-                      <span className="text-sm text-slate-400">Group Icon</span>
-                      <select value={group.icon ?? "Layout"} onChange={(e) => updateGroupField(gIdx, "icon", e.target.value)} className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-900 px-3 py-2 text-slate-100">
-                        {iconOptions.map((opt) => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                </div>
+                {groups.map((group, gIdx) => {
+                  const GroupIcon = resolveIcon(group.icon);
+                  return (
+                    <div key={gIdx} className="rounded-2xl border border-slate-800 p-4 bg-slate-950/80">
+                      <div className="flex items-center justify-between gap-3 mb-3">
+                        <div className="flex-1">
+                          <label className="block">
+                            <span className="text-sm text-slate-400">Group Category</span>
+                            <input value={group.category} onChange={(e) => updateGroupField(gIdx, "category", e.target.value)} className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-900 px-3 py-2 text-slate-100" />
+                          </label>
+                          <label className="block mt-2">
+                            <span className="text-sm text-slate-400">Group Description</span>
+                            <input value={group.description} onChange={(e) => updateGroupField(gIdx, "description", e.target.value)} className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-900 px-3 py-2 text-slate-100" />
+                          </label>
+                        </div>
+                        <div className="w-44">
+                          <label className="block">
+                            <span className="text-sm text-slate-400">Group Icon</span>
+                            <div className="mt-2 flex items-center gap-2">
+                              <select value={group.icon ?? "Layout"} onChange={(e) => updateGroupField(gIdx, "icon", e.target.value)} className="flex-1 w-full rounded-2xl border border-slate-800 bg-slate-900 px-3 py-2 text-slate-100">
+                                {iconOptions.map((opt) => (
+                                  <option key={opt} value={opt}>{opt}</option>
+                                ))}
+                              </select>
+                              <div className="p-2 rounded bg-slate-900 border border-slate-800 flex items-center justify-center">
+                                <GroupIcon className="w-5 h-5 text-slate-100" />
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
 
-                <div className="space-y-3">
-                  {(group.skills || []).map((skill: any, sIdx: number) => (
-                    <div key={sIdx} className="grid grid-cols-12 gap-2 items-center">
-                      <input className="col-span-4 rounded-2xl bg-slate-900 px-3 py-2 border border-slate-800 text-slate-100" value={skill.name} onChange={(e) => updateSkillField(gIdx, sIdx, "name", e.target.value)} />
-                      <input className="col-span-2 rounded-2xl bg-slate-900 px-3 py-2 border border-slate-800 text-slate-100" value={skill.level} onChange={(e) => updateSkillField(gIdx, sIdx, "level", e.target.value)} />
-                      <select className="col-span-4 rounded-2xl bg-slate-900 px-3 py-2 border border-slate-800 text-slate-100" value={skill.icon ?? "ReactIcon"} onChange={(e) => updateSkillField(gIdx, sIdx, "icon", e.target.value)}>
-                        {iconOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                      </select>
-                      <div className="col-span-2 flex gap-2">
-                        <button type="button" onClick={() => removeSkill(gIdx, sIdx)} className="rounded-2xl bg-rose-500 px-3 py-2 text-xs font-semibold text-white">Remove</button>
+                      <div className="space-y-3">
+                        {(group.skills || []).map((skill: any, sIdx: number) => {
+                          const SkillPreview = resolveIcon(skill.icon);
+                          return (
+                            <div key={sIdx} className="grid grid-cols-12 gap-2 items-center">
+                              <input className="col-span-4 rounded-2xl bg-slate-900 px-3 py-2 border border-slate-800 text-slate-100" value={skill.name} onChange={(e) => updateSkillField(gIdx, sIdx, "name", e.target.value)} />
+                              <input className="col-span-2 rounded-2xl bg-slate-900 px-3 py-2 border border-slate-800 text-slate-100" value={skill.level} onChange={(e) => updateSkillField(gIdx, sIdx, "level", e.target.value)} />
+                              <div className="col-span-4 flex items-center gap-2">
+                                <select className="flex-1 rounded-2xl bg-slate-900 px-3 py-2 border border-slate-800 text-slate-100" value={skill.icon ?? "ReactIcon"} onChange={(e) => updateSkillField(gIdx, sIdx, "icon", e.target.value)}>
+                                  {iconOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                                </select>
+                                <div className="w-8 h-8 flex items-center justify-center p-1 rounded bg-slate-900 border border-slate-800">
+                                  <SkillPreview className="w-5 h-5 text-slate-100" />
+                                </div>
+                              </div>
+                              <div className="col-span-2 flex gap-2">
+                                <button type="button" onClick={() => removeSkill(gIdx, sIdx)} className="rounded-2xl bg-rose-500 px-3 py-2 text-xs font-semibold text-white">Remove</button>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        <div className="pt-3">
+                          <button type="button" onClick={() => addSkill(gIdx)} className="rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Add Skill</button>
+                          <button type="button" onClick={() => removeGroup(gIdx)} className="ml-3 rounded-2xl bg-rose-500 px-4 py-2 text-sm font-semibold text-white">Remove Group</button>
+                        </div>
                       </div>
                     </div>
-                  ))}
-
-                  <div className="pt-3">
-                    <button type="button" onClick={() => addSkill(gIdx)} className="rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Add Skill</button>
-                    <button type="button" onClick={() => removeGroup(gIdx)} className="ml-3 rounded-2xl bg-rose-500 px-4 py-2 text-sm font-semibold text-white">Remove Group</button>
-                  </div>
-                </div>
-              </div>
-            ))}
+                  );
+                })}
 
             <div>
               <button type="button" onClick={addGroup} className="rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white">Add Group</button>
