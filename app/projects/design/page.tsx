@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Palette, Eye, X } from "lucide-react";
+import { ArrowLeft, Palette, Eye, X, Bell } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useProjects } from "@/lib/useProjects";
+import { useNotifications } from "@/lib/useNotifications";
+import NotificationsPanel from "@/components/NotificationsPanel";
 import type { Project } from "@/data/projects";
 
 // Create an animated Next.js Link component to avoid invalid nested <a> tags
@@ -13,15 +15,34 @@ const MotionLink = motion(Link);
 
 export default function DesignProjects() {
   const { projects, loading, error } = useProjects("Design");
+  const { unreadCount } = useNotifications();
 
   // Selected image for the modal popup
   const [selectedImage, setSelectedImage] = useState<{
     src: string;
     title: string;
   } | null>(null);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   return (
     <main className="py-20 px-6 max-w-5xl mx-auto min-h-screen flex flex-col justify-center">
+      {/* Notification Bell Button */}
+      <div className="mb-8 flex items-center justify-between">
+        <div></div>
+        <button
+          onClick={() => setNotificationsOpen(true)}
+          className="relative p-2.5 rounded-lg bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 text-slate-300 hover:text-purple-300 transition-colors"
+          aria-label="Notifications"
+        >
+          <Bell className="w-5 h-5" />
+          {unreadCount > 0 && (
+            <motion.span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold bg-purple-600 text-white rounded-full">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </motion.span>
+          )}
+        </button>
+      </div>
+
       {/* Animated Boxed Back Button */}
       <div className="mb-8">
         <MotionLink
@@ -186,6 +207,9 @@ export default function DesignProjects() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Notifications Panel */}
+      <NotificationsPanel isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
     </main>
   );
 }

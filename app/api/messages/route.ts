@@ -22,6 +22,50 @@ export async function GET() {
   return NextResponse.json({ data });
 }
 
+async function sendTelegramAlert(name: string, email: string, content: string) {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const chatTarget = process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHANNEL_ID || process.env.TELEGRAM_CHANNEL_USERNAME || process.env.TELEGRAM_CHANNEL;
+  const topicId = process.env.TELEGRAM_TOPIC_ID || process.env.TELEGRAM_MESSAGE_THREAD_ID;
+
+  if (!botToken || !chatTarget) {
+    return;
+  }
+
+  const text = [
+    "📨 New portfolio contact message",
+    `👤 Name: ${name}`,
+    `📧 Email: ${email}`,
+    "",
+    `💬 Message:\n${content}`,
+  ].join("\n");
+
+  const payload: Record<string, unknown> = {
+    chat_id: chatTarget,
+    text,
+    disable_web_page_preview: true,
+    parse_mode: "HTML",
+  };
+
+  if (topicId) {
+    payload.message_thread_id = parseInt(topicId, 10);
+  }
+
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result?.ok) {
+      console.error("Telegram alert failed", result?.description ?? response.statusText);
+    }
+  } catch (error) {
+    console.error("Telegram alert failed", error);
+  }
+}
+
 export async function POST(request: Request) {
   const supabase = createSupabaseAdminClient();
   if (!supabase) return missingClientResponse;
@@ -41,6 +85,8 @@ export async function POST(request: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  await sendTelegramAlert(name, email, content);
 
   return NextResponse.json({ data });
 }

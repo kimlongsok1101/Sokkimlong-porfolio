@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, type FormEvent } from "react";
 import { motion, Variants } from "framer-motion";
 import { Sparkles, ArrowUpRight } from "lucide-react";
 import { usePageSection } from "@/lib/usePageSection";
@@ -33,6 +34,55 @@ const DiscordIcon = () => (
 export default function Contact() {
   const { payload } = usePageSection("contact", defaultContactSection);
   const contactData = payload as ContactSectionPayload;
+
+  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [feedback, setFeedback] = useState<{ type: "idle" | "success" | "error"; message: string }>({
+    type: "idle",
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
+      setFeedback({ type: "error", message: "Please fill in your name, email, and message." });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setFeedback({ type: "idle", message: "" });
+
+    try {
+      const response = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          content: formData.message.trim(),
+        }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.error || "Unable to send your message right now.");
+      }
+
+      setFeedback({ type: "success", message: "Your message has been sent. I’ll get back to you soon." });
+      setFormData({ name: "", email: "", message: "" });
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: error instanceof Error ? error.message : "Unable to send your message right now.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const socialLinks = [
     {
@@ -126,6 +176,72 @@ export default function Contact() {
           {contactData.subheading}
         </p>
       </motion.div>
+
+      {/* Contact Form */}
+      <motion.form
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        onSubmit={handleSubmit}
+        className="mx-auto mb-8 max-w-2xl rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 shadow-[0_0_40px_rgba(15,23,42,0.35)] backdrop-blur-xl relative z-10"
+      >
+        <div className="mb-5">
+          <h3 className="text-lg font-semibold text-slate-100">Send me a message</h3>
+          <p className="mt-1 text-sm text-slate-400">Share your name, email, and a short message. I’ll get notified in Telegram right away.</p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="text-sm text-slate-300">
+            <span className="mb-2 block">Your name</span>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(event) => setFormData((current) => ({ ...current, name: event.target.value }))}
+              placeholder="Enter your name"
+              className="w-full rounded-xl border border-slate-700 bg-slate-950/90 px-3 py-2.5 text-sm text-slate-100 outline-none transition focus:border-indigo-400"
+            />
+          </label>
+
+          <label className="text-sm text-slate-300">
+            <span className="mb-2 block">Your email</span>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(event) => setFormData((current) => ({ ...current, email: event.target.value }))}
+              placeholder="your@email.com"
+              className="w-full rounded-xl border border-slate-700 bg-slate-950/90 px-3 py-2.5 text-sm text-slate-100 outline-none transition focus:border-indigo-400"
+            />
+          </label>
+        </div>
+
+        <label className="mt-4 block text-sm text-slate-300">
+          <span className="mb-2 block">Message</span>
+          <textarea
+            rows={5}
+            value={formData.message}
+            onChange={(event) => setFormData((current) => ({ ...current, message: event.target.value }))}
+            placeholder="Tell me about your project, idea, or opportunity..."
+            className="w-full rounded-xl border border-slate-700 bg-slate-950/90 px-3 py-2.5 text-sm text-slate-100 outline-none transition focus:border-indigo-400"
+          />
+        </label>
+
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="inline-flex items-center justify-center rounded-xl bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {isSubmitting ? "Sending..." : "Send Message"}
+          </button>
+
+          {feedback.message ? (
+            <p className={`text-sm ${feedback.type === "success" ? "text-emerald-400" : "text-rose-400"}`}>
+              {feedback.message}
+            </p>
+          ) : null}
+        </div>
+      </motion.form>
 
       {/* Social Cards Grid */}
       <motion.div

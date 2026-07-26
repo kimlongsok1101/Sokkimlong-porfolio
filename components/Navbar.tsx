@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Menu, X, Code2 } from "lucide-react";
+import { Terminal, Menu, X, Code2, Bell, Moon, Sun } from "lucide-react";
+import { useNotifications } from "@/lib/useNotifications";
+import NotificationsPanel from "@/components/NotificationsPanel";
 
 const navLinks = [
   { name: "Home", href: "#home" },
@@ -17,6 +19,10 @@ export default function Navbar() {
   const [activeSection, setActiveSection] = useState("home");
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [mounted, setMounted] = useState(false);
+  const { unreadCount } = useNotifications();
 
   useEffect(() => {
     // Background blur & active link detection on scroll
@@ -39,6 +45,25 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const storedTheme = window.localStorage.getItem("theme");
+    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    const nextTheme = storedTheme === "light" || storedTheme === "dark" ? storedTheme : systemTheme;
+
+    setTheme(nextTheme);
+    setMounted(true);
+    document.documentElement.classList.toggle("light", nextTheme === "light");
+    document.documentElement.classList.toggle("dark", nextTheme === "dark");
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    window.localStorage.setItem("theme", nextTheme);
+    document.documentElement.classList.toggle("light", nextTheme === "light");
+    document.documentElement.classList.toggle("dark", nextTheme === "dark");
+  };
 
   // Lock body scroll ONLY when mobile menu is open
   useEffect(() => {
@@ -125,8 +150,42 @@ export default function Navbar() {
           })}
         </nav>
 
-        {/* Call to Action Button */}
-        <div className="hidden md:block">
+        {/* Notification & CTA Buttons */}
+        <div className="hidden md:flex items-center gap-3">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="relative inline-flex items-center rounded-full border border-slate-800 bg-slate-900/80 p-1 text-slate-300 hover:border-indigo-500/30 hover:text-slate-100 transition-colors"
+            aria-label="Toggle theme"
+          >
+            <div className="relative h-8 w-16 rounded-full bg-slate-800/90 p-1">
+              <motion.div
+                animate={{ left: theme === "dark" ? 4 : 36 }}
+                transition={{ type: "spring", stiffness: 260, damping: 22 }}
+                className="absolute top-1 h-6 w-6 rounded-full bg-white shadow-lg"
+              />
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">☀</span>
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">🌙</span>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setNotificationsOpen(true)}
+            className="relative p-2.5 rounded-lg bg-slate-900/80 border border-slate-800 text-slate-300 hover:text-slate-100 hover:border-indigo-500/30 transition-colors group"
+            aria-label="Notifications"
+          >
+            <Bell className="w-4 h-4" />
+            {unreadCount > 0 && (
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-1 -right-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500 text-white text-xs font-bold"
+              >
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </motion.span>
+            )}
+          </button>
+
           <a
             href="#support"
             onClick={(e) => handleNavClick(e, "#support")}
@@ -173,6 +232,36 @@ export default function Navbar() {
                   </a>
                 );
               })}
+
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="py-2 px-3 rounded-lg bg-slate-900/50 border border-slate-800 text-slate-300 hover:text-slate-100 transition-colors flex items-center justify-between"
+                aria-label="Toggle theme"
+              >
+                <span>{mounted && theme === "dark" ? "Light" : "Dark"}</span>
+                {mounted && theme === "dark" ? (
+                  <Sun className="w-4 h-4" />
+                ) : (
+                  <Moon className="w-4 h-4" />
+                )}
+              </button>
+
+              <button
+                onClick={() => {
+                  setNotificationsOpen(true);
+                  setMobileMenuOpen(false);
+                }}
+                className="py-2 px-3 rounded-lg bg-slate-900/50 border border-slate-800 text-slate-300 hover:text-slate-100 transition-colors flex items-center justify-between"
+              >
+                <span>Notifications</span>
+                {unreadCount > 0 && (
+                  <motion.span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500 text-white text-xs font-bold">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </motion.span>
+                )}
+              </button>
+
               <a
                 href="#contact"
                 onClick={(e) => handleNavClick(e, "#contact")}
@@ -184,6 +273,9 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Notifications Panel */}
+      <NotificationsPanel isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
     </header>
   );
 }

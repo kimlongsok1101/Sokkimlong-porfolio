@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Code2, Play } from "lucide-react";
+import { ArrowLeft, Code2, Play, Bell } from "lucide-react";
 import { motion } from "framer-motion";
 import { useProjects } from "@/lib/useProjects";
+import { useNotifications } from "@/lib/useNotifications";
+import NotificationsPanel from "@/components/NotificationsPanel";
 import type { Project } from "@/data/projects";
 
 // Motion-enabled Next.js Link component (prevents legacyBehavior hydration errors)
@@ -30,9 +33,28 @@ function GithubIcon({ className }: { className?: string }) {
 
 export default function FullstackProjects() {
   const { projects, loading, error } = useProjects("Full Stack Websites");
+  const { unreadCount } = useNotifications();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   return (
     <main className="py-20 px-6 max-w-5xl mx-auto min-h-screen flex flex-col justify-center">
+      {/* Notification Bell Button */}
+      <div className="mb-8 flex items-center justify-between">
+        <div></div>
+        <button
+          onClick={() => setNotificationsOpen(true)}
+          className="relative p-2.5 rounded-lg bg-slate-900/80 border border-slate-800 hover:border-indigo-500/40 text-slate-300 hover:text-indigo-300 transition-colors"
+          aria-label="Notifications"
+        >
+          <Bell className="w-5 h-5" />
+          {unreadCount > 0 && (
+            <motion.span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold bg-indigo-600 text-white rounded-full">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </motion.span>
+          )}
+        </button>
+      </div>
+
       {/* Animated Boxed Back Button */}
       <div className="mb-8">
         <MotionLink
@@ -155,6 +177,9 @@ export default function FullstackProjects() {
           );
         })}
       </div>
+
+      {/* Notifications Panel */}
+      <NotificationsPanel isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
     </main>
   );
 }

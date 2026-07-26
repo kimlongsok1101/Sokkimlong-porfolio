@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabaseClient";
+import { sendNotification } from "@/lib/sendNotification";
 import {
   defaultAboutSection,
   defaultContactSection,
@@ -405,7 +406,24 @@ export default function AdminPage() {
     if (!response.ok) {
       setFeedback(result.error ?? "Unable to save project.");
     } else {
-      setFeedback(projectEditId ? "Project updated." : "Project created.");
+      const message = projectEditId ? "Project updated." : "Project created.";
+      setFeedback(message);
+
+      // Notify users about the project update with project image and category
+      const projectId = result.data?.[0]?.id || projectEditId;
+      const notificationSent = await sendNotification(
+        "project",
+        projectForm.title,
+        projectForm.description,
+        projectId,
+        projectForm.image,
+        projectForm.category
+      );
+
+      if (!notificationSent) {
+        setFeedback(`${message} Notification failed to send.`);
+      }
+
       resetProjectForm();
       loadProjects(projectCategory);
     }
@@ -593,6 +611,14 @@ export default function AdminPage() {
       setFeedback(result.error ?? "Unable to save section.");
     } else {
       setFeedback(`Saved ${sectionEditor.section} section.`);
+      
+      // Notify users about the section update
+      await sendNotification(
+        "section",
+        `${sectionEditor.section.charAt(0).toUpperCase() + sectionEditor.section.slice(1)} Updated`,
+        `The ${sectionEditor.section} section has been updated.`
+      );
+      
       loadSections();
     }
     setLoading(false);

@@ -13,15 +13,16 @@ create table if not exists public.messages (
 -- Enable row-level security for the messages table.
 alter table public.messages enable row level security;
 
--- Public read policy: allow anyone to select messages.
-create policy if not exists "Allow public select on messages"
+drop policy if exists "Allow public select on messages" on public.messages;
+create policy "Allow public select on messages"
   on public.messages
   for select
   using (true);
 
 -- Authenticated admin policy: allow authenticated users to insert, update, delete messages.
 -- This policy is intentionally broad for admin dashboard use; narrow it if you want a stricter rule.
-create policy if not exists "Allow authenticated write on messages"
+drop policy if exists "Allow authenticated write on messages" on public.messages;
+create policy "Allow authenticated write on messages"
   on public.messages
   for all
   using (auth.role() = 'authenticated')
@@ -36,12 +37,14 @@ create table if not exists public.page_sections (
 
 alter table public.page_sections enable row level security;
 
-create policy if not exists "Allow public select on page sections"
+drop policy if exists "Allow public select on page sections" on public.page_sections;
+create policy "Allow public select on page sections"
   on public.page_sections
   for select
   using (true);
 
-create policy if not exists "Allow authenticated write on page sections"
+drop policy if exists "Allow authenticated write on page sections" on public.page_sections;
+create policy "Allow authenticated write on page sections"
   on public.page_sections
   for all
   using (auth.role() = 'authenticated')
@@ -66,12 +69,14 @@ create table if not exists public.projects (
 
 alter table public.projects enable row level security;
 
-create policy if not exists "Allow public select on projects"
+drop policy if exists "Allow public select on projects" on public.projects;
+create policy "Allow public select on projects"
   on public.projects
   for select
   using (true);
 
-create policy if not exists "Allow authenticated write on projects"
+drop policy if exists "Allow authenticated write on projects" on public.projects;
+create policy "Allow authenticated write on projects"
   on public.projects
   for all
   using (auth.role() = 'authenticated')
@@ -83,3 +88,53 @@ create policy if not exists "Allow authenticated write on projects"
 --   for insert, update, delete
 --   using (auth.role() = 'authenticated' and auth.email() = 'kimlongsok1101@gmail.com')
 --   with check (auth.role() = 'authenticated' and auth.email() = 'kimlongsok1101@gmail.com');
+
+-- Create the notifications table
+create table if not exists public.notifications (
+  id uuid default gen_random_uuid() primary key,
+  type text not null check (type in ('project', 'section', 'message')),
+  title text not null,
+  description text not null,
+  projectId text,
+  projectImage text,
+  projectCategory text,
+  read boolean default false,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- Enable row-level security for notifications
+alter table public.notifications enable row level security;
+
+-- Allow anyone to read notifications
+drop policy if exists "Allow public read notifications" on public.notifications;
+create policy "Allow public read notifications"
+  on public.notifications
+  for select
+  using (true);
+
+-- Allow authenticated users to insert notifications
+drop policy if exists "Allow authenticated insert notifications" on public.notifications;
+create policy "Allow authenticated insert notifications"
+  on public.notifications
+  for insert
+  with check (auth.role() = 'authenticated');
+
+-- Allow users to update their own read status
+drop policy if exists "Allow update notification read status" on public.notifications;
+create policy "Allow update notification read status"
+  on public.notifications
+  for update
+  using (true)
+  with check (true);
+
+-- Allow users to delete notifications (admin only in practice)
+drop policy if exists "Allow delete notifications" on public.notifications;
+create policy "Allow delete notifications"
+  on public.notifications
+  for delete
+  using (true);
+
+-- Create indexes for better query performance
+create index if not exists idx_notifications_created_at on public.notifications (created_at desc);
+create index if not exists idx_notifications_read on public.notifications (read);
