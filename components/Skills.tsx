@@ -150,15 +150,13 @@ export function resolveIcon(icon?: string | ((props?: any) => any)) {
   return DefaultSkillIcon;
 }
 
-// ICON_MAP and DefaultSkillIcon are imported from components/skillIcons
-
 export default function Skills() {
   const { payload } = usePageSection("skills", defaultSkillsSection);
   const skillsData = payload as SkillsSectionPayload;
   const skillGroups = Array.isArray(skillsData.groups) && skillsData.groups.length > 0 ? skillsData.groups : defaultSkillsSection.groups;
 
   return (
-    <section id="skills" className="py-24 px-6 max-w-6xl mx-auto relative overflow-hidden">
+    <section id="skills" className="py-16 sm:py-24 px-4 sm:px-6 max-w-6xl mx-auto relative overflow-hidden">
       {/* Animated Glowing Ambient Orbs */}
       <motion.div
         animate={{
@@ -166,7 +164,7 @@ export default function Skills() {
           opacity: [0.15, 0.25, 0.15],
         }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 w-72 h-72 sm:w-96 sm:h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"
       />
       <motion.div
         animate={{
@@ -174,11 +172,11 @@ export default function Skills() {
           opacity: [0.1, 0.2, 0.1],
         }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-10 right-10 w-72 h-72 bg-sky-500/20 rounded-full blur-3xl pointer-events-none"
+        className="absolute bottom-10 right-10 w-60 h-60 sm:w-72 sm:h-72 bg-sky-500/20 rounded-full blur-3xl pointer-events-none"
       />
 
       {/* Animated Header */}
-      <div className="text-center mb-16 relative z-10">
+      <div className="text-center mb-12 sm:mb-16 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -191,15 +189,16 @@ export default function Skills() {
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            {/* Tech & Design Stack */}
           </motion.div>
+          <span>Tech & Design Stack</span>
+        </motion.div>
 
         <motion.h2
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight"
+          className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-100 tracking-tight px-2"
         >
           {skillsData.headline}
         </motion.h2>
@@ -209,15 +208,14 @@ export default function Skills() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="text-slate-400 text-sm max-w-lg mx-auto mt-2"
+          className="text-slate-400 text-xs sm:text-sm md:text-base max-w-lg mx-auto mt-2 px-4"
         >
           {skillsData.description}
         </motion.p>
-      </motion.div>
       </div>
 
       {/* Skill Categories Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-10">
         {skillGroups.map((group, groupIdx) => {
           const CategoryIcon = resolveIcon(group.icon);
           const skills = Array.isArray(group.skills) ? group.skills : [];
@@ -229,19 +227,19 @@ export default function Skills() {
               viewport={{ once: true }}
               transition={{ delay: groupIdx * 0.15, duration: 0.5, ease: "easeOut" }}
               whileHover={{ y: -6 }}
-              className="group bg-slate-900/80 border border-slate-800/80 hover:border-indigo-500/40 rounded-3xl p-6 backdrop-blur-xl shadow-xl hover:shadow-[0_10px_30px_rgba(99,102,241,0.15)] transition-all duration-300 flex flex-col justify-between relative"
+              className="group bg-slate-900/80 border border-slate-800/80 hover:border-indigo-500/40 rounded-3xl p-5 sm:p-6 backdrop-blur-xl shadow-xl hover:shadow-[0_10px_30px_rgba(99,102,241,0.15)] transition-all duration-300 flex flex-col justify-between relative"
             >
               <div>
                 {/* Category Header */}
                 <div className="flex items-center gap-3 mb-2">
                   <motion.div
                     whileHover={{ scale: 1.1, rotate: 5 }}
-                    className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 group-hover:bg-indigo-500/20 group-hover:border-indigo-500/40 transition-colors"
+                    className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 group-hover:bg-indigo-500/20 group-hover:border-indigo-500/40 transition-colors shrink-0"
                   >
                     <CategoryIcon className="w-5 h-5" />
                   </motion.div>
                   <div>
-                    <h3 className="text-lg font-bold text-slate-100 group-hover:text-indigo-300 transition-colors">
+                    <h3 className="text-base sm:text-lg font-bold text-slate-100 group-hover:text-indigo-300 transition-colors">
                       {group.category}
                     </h3>
                   </div>
@@ -260,23 +258,23 @@ export default function Skills() {
                         viewport={{ once: true }}
                         transition={{ delay: groupIdx * 0.1 + skillIdx * 0.08, duration: 0.4 }}
                         whileHover={{ scale: 1.02, x: 4 }}
-                        className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/70 hover:border-slate-700 hover:bg-slate-900/90 transition-all shadow-inner"
+                        className="p-3 sm:p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/70 hover:border-slate-700 hover:bg-slate-900/90 transition-all shadow-inner"
                       >
-                        <div className="flex items-center justify-between mb-2.5">
-                          <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-between mb-2.5 gap-2">
+                          <div className="flex items-center gap-2.5 min-w-0">
                             <motion.div
                               whileHover={{ rotate: 12, scale: 1.1 }}
-                              className="p-2 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center"
+                              className="p-2 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0"
                             >
                               <SkillIcon />
                             </motion.div>
-                            <span className="text-sm font-semibold text-slate-200">
+                            <span className="text-xs sm:text-sm font-semibold text-slate-200 truncate">
                               {skill.name}
                             </span>
                           </div>
-                                        <span className="text-xs font-mono text-indigo-400 font-bold">
-                                          {skill.level}
-                                        </span>
+                          <span className="text-xs font-mono text-indigo-400 font-bold shrink-0">
+                            {skill.level}
+                          </span>
                         </div>
 
                         {/* Animated Progress Bar */}
