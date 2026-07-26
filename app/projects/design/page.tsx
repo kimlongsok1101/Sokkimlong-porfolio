@@ -101,7 +101,7 @@ export default function DesignProjects() {
                     alt={project.title}
                     fill
                     className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-700">
@@ -200,6 +200,7 @@ export default function DesignProjects() {
                   alt={selectedImage.title}
                   fill
                   className="object-contain"
+                  sizes="(max-width: 768px) 100vw, 80vw"
                   priority
                 />
               </div>

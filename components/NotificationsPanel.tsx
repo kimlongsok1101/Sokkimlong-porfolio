@@ -146,6 +146,7 @@ export default function NotificationsPanel({ isOpen, onClose }: NotificationsPan
                               alt={notification.title}
                               fill
                               className="object-cover"
+                              sizes="(max-width: 768px) 100vw, 320px"
                             />
                           </div>
                         )}

@@ -23,31 +23,40 @@ export async function GET() {
 }
 
 async function sendTelegramAlert(name: string, email: string, content: string) {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const chatTarget = process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHANNEL_ID || process.env.TELEGRAM_CHANNEL_USERNAME || process.env.TELEGRAM_CHANNEL;
-  const topicId = process.env.TELEGRAM_TOPIC_ID || process.env.TELEGRAM_MESSAGE_THREAD_ID;
+  const botToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  const chatTarget = [
+    process.env.TELEGRAM_CHAT_ID,
+    process.env.TELEGRAM_CHANNEL_ID,
+    process.env.TELEGRAM_CHANNEL_USERNAME,
+    process.env.TELEGRAM_CHANNEL,
+  ]
+    .filter((value): value is string => Boolean(value && value.trim()))
+    .map((value) => value.trim())[0];
+  const topicId = (process.env.TELEGRAM_TOPIC_ID || process.env.TELEGRAM_MESSAGE_THREAD_ID || "").trim();
 
   if (!botToken || !chatTarget) {
+    console.warn("Telegram alert skipped because the bot token or chat target is not configured.");
     return;
   }
 
+  const normalizeText = (value: string) => value.replace(/\r?\n/g, " ").replace(/\s+/g, " ").trim();
+
   const text = [
     "📨 New portfolio contact message",
-    `👤 Name: ${name}`,
-    `📧 Email: ${email}`,
+    `👤 Name: ${normalizeText(name)}`,
+    `📧 Email: ${normalizeText(email)}`,
     "",
-    `💬 Message:\n${content}`,
+    `💬 Message:\n${normalizeText(content)}`,
   ].join("\n");
 
   const payload: Record<string, unknown> = {
     chat_id: chatTarget,
     text,
     disable_web_page_preview: true,
-    parse_mode: "HTML",
   };
 
   if (topicId) {
-    payload.message_thread_id = parseInt(topicId, 10);
+    payload.message_thread_id = Number.parseInt(topicId, 10);
   }
 
   try {
@@ -59,7 +68,10 @@ async function sendTelegramAlert(name: string, email: string, content: string) {
 
     const result = await response.json().catch(() => null);
     if (!response.ok || !result?.ok) {
-      console.error("Telegram alert failed", result?.description ?? response.statusText);
+      console.error("Telegram alert failed", {
+        status: response.status,
+        description: result?.description ?? response.statusText,
+      });
     }
   } catch (error) {
     console.error("Telegram alert failed", error);

@@ -114,7 +114,7 @@ export default function FullstackProjects() {
                   alt={project.title}
                   fill
                   className="object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out"
-                  sizes="(max-width: 768px) 100vw, 50vw"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-slate-700">
