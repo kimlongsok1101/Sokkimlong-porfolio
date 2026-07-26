@@ -14,8 +14,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://sokkimlong.site"),
   title: "SOK KIMLONG",
   description: "Sokkimlong Portfolio",
+  icons: {
+    icon: "/favicon.ico", // Update this path if your file name is different
+  },
+  openGraph: {
+    images: ["/profile.jpg"],
+  },
+  twitter: {
+    images: ["/profile.jpg"],
+  },
 };
 
 export default function RootLayout({
