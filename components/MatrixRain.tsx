@@ -1,39 +1,56 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function MatrixRain() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    const updateRenderState = () => {
+      setShouldRender(!mediaQuery.matches && !reducedMotionQuery.matches);
+    };
+
+    updateRenderState();
+    mediaQuery.addEventListener("change", updateRenderState);
+    reducedMotionQuery.addEventListener("change", updateRenderState);
+
+    return () => {
+      mediaQuery.removeEventListener("change", updateRenderState);
+      reducedMotionQuery.removeEventListener("change", updateRenderState);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!shouldRender) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas dimensions to window size
     const handleResize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     };
+
     handleResize();
     window.addEventListener("resize", handleResize);
 
-    // Matrix characters (Katakana + Numbers + English)
     const characters = "アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const fontSize = 14;
-    const columns = Math.floor(canvas.width / fontSize);
-    
-    // Y-coordinate drops array
+    const fontSize = window.innerWidth < 1024 ? 10 : 14;
+    const columns = Math.max(1, Math.floor(canvas.width / fontSize));
     const drops: number[] = Array(columns).fill(1);
 
     const draw = () => {
-      // Semi-transparent black background to create trail effect
-      ctx.fillStyle = "rgba(2, 6, 23, 0.08)"; // Matches slate-950
+      ctx.fillStyle = "rgba(2, 6, 23, 0.08)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = "#6366f1"; // Glowing Indigo color (change to #0ef or #00ff66 for classic green)
+      ctx.fillStyle = "#6366f1";
       ctx.font = `${fontSize}px monospace`;
 
       for (let i = 0; i < drops.length; i++) {
@@ -43,7 +60,6 @@ export default function MatrixRain() {
 
         ctx.fillText(text, x, y);
 
-        // Reset drop to top randomly after leaving screen
         if (y > canvas.height && Math.random() > 0.975) {
           drops[i] = 0;
         }
@@ -52,13 +68,15 @@ export default function MatrixRain() {
       }
     };
 
-    const interval = setInterval(draw, 33); // ~30 FPS for smooth matrix speed
+    const interval = setInterval(draw, 50);
 
     return () => {
       clearInterval(interval);
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [shouldRender]);
+
+  if (!shouldRender) return null;
 
   return (
     <canvas

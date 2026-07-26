@@ -17,12 +17,29 @@ export default function HomeHero() {
   const [displayedCode, setDisplayedCode] = useState("");
   const [isMounted, setIsMounted] = useState(false);
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   
   // Discord Status State
   const [discordStatus, setDiscordStatus] = useState<string>("offline");
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    const updateViewport = () => setIsMobile(mediaQuery.matches);
+
+    updateViewport();
+    mediaQuery.addEventListener("change", updateViewport);
+
+    return () => mediaQuery.removeEventListener("change", updateViewport);
+  }, []);
+
+  useEffect(() => {
     setIsMounted(true);
+
+    if (isMobile) {
+      setDisplayedCode(codeSnippet);
+      setVisitorCount(0);
+      return;
+    }
 
     // REPLACE WITH YOUR ACTUAL DISCORD USER ID
     const DISCORD_USER_ID = "745943593432121465";
@@ -93,7 +110,7 @@ export default function HomeHero() {
     }, 25);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isMobile]);
 
   // Helper mappings for Discord status color & label
   const getStatusConfig = (status: string) => {
