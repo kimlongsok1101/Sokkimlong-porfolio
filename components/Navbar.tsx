@@ -119,7 +119,7 @@ export default function Navbar() {
             <Terminal className="w-4 h-4" />
           </div>
           <span>
-            SOKKIMLONG<span className="text-indigo-400">.dev</span>
+            SOKKIMLONG<span className="text-indigo-400">.SITE</span>
           </span>
         </a>
 
