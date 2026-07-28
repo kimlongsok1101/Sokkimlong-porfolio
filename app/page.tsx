@@ -5,6 +5,7 @@ import Skills from "@/components/Skills";
 import Projects from "@/components/Projects";
 import PayCoffeeMe from "@/components/PayCoffeeMe";
 import Contact from "@/components/Contact";
+import Footer from "@/components/Footer";
 import MatrixRain from "@/components/MatrixRain"; // Or ParticleGrid
 
 export default function Home() {
@@ -22,6 +23,7 @@ export default function Home() {
         <Projects />
         <PayCoffeeMe />
         <Contact />
+        <Footer />
       </div>
     </main>
   );

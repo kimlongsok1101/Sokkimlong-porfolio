@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowDown, Sparkles, Terminal, Code2, Database, Users } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type MouseEvent } from "react";
 
 const codeSnippet = `const developer = {
   name: "Sokkimlong",
@@ -137,6 +137,12 @@ export default function HomeHero() {
 
   const currentStatus = getStatusConfig(discordStatus);
 
+  const handleScrollToAbout = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    const target = document.getElementById("about");
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <section id="home" className="min-h-screen flex flex-col justify-center items-center relative pt-28 pb-16 px-6 overflow-hidden">
       {/* Cyber Grid Background */}
@@ -268,6 +274,11 @@ export default function HomeHero() {
       {isMobile ? (
         <a
           href="#about"
+          onClick={(event) => {
+            event.preventDefault();
+            const target = document.getElementById("about");
+            target?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
           className="mt-12 flex flex-col items-center gap-2 text-slate-400 hover:text-indigo-400 text-xs font-mono uppercase tracking-widest transition-colors z-10"
         >
           <span>[ Scroll down ]</span>
@@ -279,6 +290,7 @@ export default function HomeHero() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: [0, 10, 0] }}
           transition={{ opacity: { delay: 1 }, y: { repeat: Infinity, duration: 1.8 } }}
+          onClick={handleScrollToAbout}
           className="mt-12 flex flex-col items-center gap-2 text-slate-400 hover:text-indigo-400 text-xs font-mono uppercase tracking-widest transition-colors z-10"
         >
           <span>[ Scroll down ]</span>

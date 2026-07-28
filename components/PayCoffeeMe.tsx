@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Coffee, X } from "lucide-react";
 
 export default function PayCoffeeMe() {
@@ -30,37 +31,51 @@ export default function PayCoffeeMe() {
         </div>
       </div>
 
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 px-4 py-6 backdrop-blur-sm">
-          <div className="w-full max-w-xl overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-900 shadow-2xl shadow-black/50">
-            <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
-              <div>
-                <p className="text-xs font-mono uppercase tracking-[0.2em] text-amber-300">Bank QR</p>
-                <h3 className="mt-1 text-xl font-bold text-slate-100">Scan to support</h3>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 px-4 py-6 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 180, damping: 18, duration: 0.35 }}
+              className="w-full max-w-xl overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-900 shadow-2xl shadow-black/50"
+            >
+              <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
+                <div>
+                  <p className="text-xs font-mono uppercase tracking-[0.2em] text-amber-300">Bank QR</p>
+                  <h3 className="mt-1 text-xl font-bold text-slate-100">Scan to support</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="rounded-full border border-slate-700 bg-slate-950/80 p-2 text-slate-300 transition hover:bg-slate-900 hover:text-white"
+                  aria-label="Close bank QR popup"
+                >
+                  <X className="h-5 w-5" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="rounded-full border border-slate-700 bg-slate-950/80 p-2 text-slate-300 transition hover:bg-slate-900 hover:text-white"
-                aria-label="Close bank QR popup"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
 
-            <div className="bg-slate-950 p-6 text-center">
-              <img
-                src="/qr.jpg"
-                alt="Bank QR code"
-                className="mx-auto max-h-[32rem] w-full max-w-md rounded-3xl object-contain"
-              />
-              <p className="mt-5 text-sm text-slate-400">
-                Scan the QR code from your bank app to send support. Replace <code className="rounded bg-slate-800 px-1 py-0.5 text-amber-200">And</code> Thank you for Buy me a coffee! ☕
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+              <div className="bg-slate-950 p-6 text-center">
+                <img
+                  src="/qr.jpg"
+                  alt="Bank QR code"
+                  className="mx-auto max-h-[32rem] w-full max-w-md rounded-3xl object-contain"
+                />
+                <p className="mt-5 text-sm text-slate-400">
+                  Scan the QR code from your bank app to send support. Replace <code className="rounded bg-slate-800 px-1 py-0.5 text-amber-200">And</code> Thank you for Buy me a coffee! ☕
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
