@@ -25,24 +25,32 @@ export default function Navbar() {
   const { unreadCount } = useNotifications();
 
   useEffect(() => {
-    // Background blur & active link detection on scroll
+    let ticking = false;
+
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 20);
 
-      const sections = navLinks.map((link) => link.href.substring(1));
-      const current = sections.find((section) => {
-        const el = document.getElementById(section);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          return rect.top <= 120 && rect.bottom >= 120;
-        }
-        return false;
-      });
+          const sections = navLinks.map((link) => link.href.substring(1));
+          const current = sections.find((section) => {
+            const el = document.getElementById(section);
+            if (el) {
+              const rect = el.getBoundingClientRect();
+              return rect.top <= 120 && rect.bottom >= 120;
+            }
+            return false;
+          });
 
-      if (current) setActiveSection(current);
+          if (current) setActiveSection(current);
+          ticking = false;
+        });
+
+        ticking = true;
+      }
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -92,7 +100,8 @@ export default function Navbar() {
     // 2. Small delay to let the menu close animation start before scrolling
     setTimeout(() => {
       if (targetElement) {
-        targetElement.scrollIntoView({ behavior: "smooth" });
+        const useSmoothScroll = !window.matchMedia("(max-width: 768px)").matches;
+        targetElement.scrollIntoView({ behavior: useSmoothScroll ? "smooth" : "auto", block: "start" });
         setActiveSection(targetId);
       } else {
         window.location.hash = href;

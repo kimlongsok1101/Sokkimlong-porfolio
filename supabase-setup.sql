@@ -138,3 +138,27 @@ create policy "Allow delete notifications"
 -- Create indexes for better query performance
 create index if not exists idx_notifications_created_at on public.notifications (created_at desc);
 create index if not exists idx_notifications_read on public.notifications (read);
+
+create table if not exists public.admin_login_blocks (
+  email text not null,
+  ip text not null,
+  failure_count integer not null default 0,
+  blocked_until timestamptz,
+  reason text,
+  updated_at timestamptz default now(),
+  primary key (email, ip)
+);
+
+create table if not exists public.admin_login_audit (
+  id uuid default gen_random_uuid() primary key,
+  email text not null,
+  ip text not null,
+  status text not null,
+  reason text not null,
+  details jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_admin_login_blocks_email on public.admin_login_blocks (email);
+create index if not exists idx_admin_login_blocks_ip on public.admin_login_blocks (ip);
+create index if not exists idx_admin_login_audit_created_at on public.admin_login_audit (created_at desc);

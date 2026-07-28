@@ -24,12 +24,21 @@ export default function HomeHero() {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 768px)");
-    const updateViewport = () => setIsMobile(mediaQuery.matches);
+    const touchQuery = window.matchMedia("(hover: none) and (pointer: coarse)");
+    const safariQuery = /safari/i.test(navigator.userAgent) && !/chrome|crios|fxios|edgios|opios/i.test(navigator.userAgent);
+
+    const updateViewport = () => {
+      setIsMobile(mediaQuery.matches || (touchQuery.matches && safariQuery));
+    };
 
     updateViewport();
     mediaQuery.addEventListener("change", updateViewport);
+    touchQuery.addEventListener("change", updateViewport);
 
-    return () => mediaQuery.removeEventListener("change", updateViewport);
+    return () => {
+      mediaQuery.removeEventListener("change", updateViewport);
+      touchQuery.removeEventListener("change", updateViewport);
+    };
   }, []);
 
   useEffect(() => {
@@ -134,14 +143,18 @@ export default function HomeHero() {
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
 
       {/* Background Animated Glow */}
-      <motion.div
-        animate={{
-          scale: [1, 1.25, 1],
-          opacity: [0.25, 0.4, 0.25],
-        }}
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[140px] pointer-events-none"
-      />
+      {!isMobile ? (
+        <motion.div
+          animate={{
+            scale: [1, 1.25, 1],
+            opacity: [0.25, 0.4, 0.25],
+          }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[140px] pointer-events-none"
+        />
+      ) : (
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-indigo-600/10 rounded-full blur-[90px] pointer-events-none" />
+      )}
 
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-10 items-center z-10">
         
@@ -252,16 +265,26 @@ export default function HomeHero() {
       </div>
 
       {/* Smooth Scroll Button */}
-      <motion.a
-        href="#about"
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: [0, 10, 0] }}
-        transition={{ opacity: { delay: 1 }, y: { repeat: Infinity, duration: 1.8 } }}
-        className="mt-12 flex flex-col items-center gap-2 text-slate-400 hover:text-indigo-400 text-xs font-mono uppercase tracking-widest transition-colors z-10"
-      >
-        <span>[ Scroll down ]</span>
-        <ArrowDown className="w-4 h-4 text-indigo-400" />
-      </motion.a>
+      {isMobile ? (
+        <a
+          href="#about"
+          className="mt-12 flex flex-col items-center gap-2 text-slate-400 hover:text-indigo-400 text-xs font-mono uppercase tracking-widest transition-colors z-10"
+        >
+          <span>[ Scroll down ]</span>
+          <ArrowDown className="w-4 h-4 text-indigo-400" />
+        </a>
+      ) : (
+        <motion.a
+          href="#about"
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: [0, 10, 0] }}
+          transition={{ opacity: { delay: 1 }, y: { repeat: Infinity, duration: 1.8 } }}
+          className="mt-12 flex flex-col items-center gap-2 text-slate-400 hover:text-indigo-400 text-xs font-mono uppercase tracking-widest transition-colors z-10"
+        >
+          <span>[ Scroll down ]</span>
+          <ArrowDown className="w-4 h-4 text-indigo-400" />
+        </motion.a>
+      )}
     </section>
   );
 }

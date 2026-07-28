@@ -96,6 +96,10 @@ export default function AdminPage() {
   const [imageFiles, setImageFiles] = useState<{ name: string; url: string }[]>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [captchaQuestion, setCaptchaQuestion] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaAnswer, setCaptchaAnswer] = useState("");
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
 
   const selectedImage = imageFiles.find((image) => image.url === projectForm.image) ?? null;
 
@@ -449,31 +453,65 @@ export default function AdminPage() {
   };
 
   const signIn = async () => {
+    const now = Date.now();
+    if (loading || (cooldownUntil && now < cooldownUntil)) return;
+
     setLoading(true);
-    const supabase = createSupabaseClient();
-    if (!supabase) {
-      setFeedback(
-        "Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY."
-      );
-      setLoading(false);
-      return;
-    }
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: form.email,
-      password: form.password,
-    });
-    if (error) {
-      setFeedback(error.message);
-    } else {
-      const userEmail = data.session?.user?.email ?? form.email;
+    setFeedback(null);
+
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+          captchaAnswer: captchaAnswer || undefined,
+          captchaToken: captchaToken || undefined,
+        }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+      const retryAfterSeconds = Number(result.retryAfter ?? 0);
+
+      if (!response.ok) {
+        if (result.requireCaptcha) {
+          setCaptchaQuestion(result.captchaQuestion ?? null);
+          setCaptchaToken(result.captchaToken ?? null);
+        } else {
+          setCaptchaQuestion(null);
+          setCaptchaToken(null);
+        }
+
+        if (retryAfterSeconds > 0) {
+          const nextCooldown = Date.now() + retryAfterSeconds * 1000;
+          setCooldownUntil(nextCooldown);
+          setFeedback(`${result.error ?? "Too many attempts."} Please wait ${retryAfterSeconds} seconds.`);
+        } else {
+          setCooldownUntil(null);
+          setFeedback(result.error ?? "Unable to sign in.");
+        }
+
+        setLoading(false);
+        return;
+      }
+
+      const userEmail = result.data?.email ?? form.email;
       setSessionEmail(userEmail);
       setFeedback("Signed in successfully.");
+      setCaptchaQuestion(null);
+      setCaptchaToken(null);
+      setCaptchaAnswer("");
+      setCooldownUntil(null);
       if (userEmail.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
         loadMessages();
         loadSections();
       }
+    } catch {
+      setFeedback("Unable to sign in right now.");
+    } finally {
+      setTimeout(() => setLoading(false), 1200);
     }
-    setLoading(false);
   };
 
   const signOut = async () => {
@@ -889,13 +927,37 @@ export default function AdminPage() {
 
           {feedback && <p className="text-sm text-rose-300 mb-4">{feedback}</p>}
 
+          {cooldownUntil && cooldownUntil > Date.now() && (
+            <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+              Login is temporarily locked. Please wait a moment before trying again.
+            </div>
+          )}
+
+          {captchaQuestion && (
+            <label className="block mb-4">
+              <span className="text-slate-300 text-sm">CAPTCHA: {captchaQuestion}</span>
+              <input
+                type="number"
+                value={captchaAnswer}
+                onChange={(e) => setCaptchaAnswer(e.target.value)}
+                className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 p-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+              />
+            </label>
+          )}
+
           <button
             type="button"
             onClick={signIn}
-            disabled={loading}
+            disabled={loading || Boolean(cooldownUntil && cooldownUntil > Date.now())}
             className="w-full rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-700"
           >
-            {loading ? "Signing in..." : "Sign in as admin"}
+            {loading
+              ? "Signing in..."
+              : cooldownUntil && cooldownUntil > Date.now()
+                ? "Please wait"
+                : captchaQuestion
+                  ? "Verify & sign in"
+                  : "Sign in as admin"}
           </button>
         </div>
       </main>

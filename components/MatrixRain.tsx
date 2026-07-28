@@ -9,18 +9,23 @@ export default function MatrixRain() {
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 768px)");
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const touchQuery = window.matchMedia("(hover: none) and (pointer: coarse)");
+    const isSafari = /safari/i.test(navigator.userAgent) && !/chrome|crios|fxios|edgios|opios/i.test(navigator.userAgent);
 
     const updateRenderState = () => {
-      setShouldRender(!mediaQuery.matches && !reducedMotionQuery.matches);
+      const shouldEnable = !mediaQuery.matches && !reducedMotionQuery.matches && !(touchQuery.matches && isSafari);
+      setShouldRender(shouldEnable);
     };
 
     updateRenderState();
     mediaQuery.addEventListener("change", updateRenderState);
     reducedMotionQuery.addEventListener("change", updateRenderState);
+    touchQuery.addEventListener("change", updateRenderState);
 
     return () => {
       mediaQuery.removeEventListener("change", updateRenderState);
       reducedMotionQuery.removeEventListener("change", updateRenderState);
+      touchQuery.removeEventListener("change", updateRenderState);
     };
   }, []);
 
@@ -33,22 +38,41 @@ export default function MatrixRain() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+
+    const resizeCanvas = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
 
-    handleResize();
-    window.addEventListener("resize", handleResize);
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
 
-    const characters = "アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const fontSize = window.innerWidth < 1024 ? 10 : 14;
-    const columns = Math.max(1, Math.floor(canvas.width / fontSize));
+    const characters = "アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const fontSize = window.innerWidth < 1024 ? 9 : 12;
+    const columns = Math.max(1, Math.floor(window.innerWidth / fontSize));
     const drops: number[] = Array(columns).fill(1);
 
-    const draw = () => {
+    let animationFrameId = 0;
+    let lastFrameTime = 0;
+
+    const draw = (timestamp: number) => {
+      if (timestamp - lastFrameTime < 50) {
+        animationFrameId = window.requestAnimationFrame(draw);
+        return;
+      }
+
+      lastFrameTime = timestamp;
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+
       ctx.fillStyle = "rgba(2, 6, 23, 0.08)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, width, height);
 
       ctx.fillStyle = "#6366f1";
       ctx.font = `${fontSize}px monospace`;
@@ -60,19 +84,21 @@ export default function MatrixRain() {
 
         ctx.fillText(text, x, y);
 
-        if (y > canvas.height && Math.random() > 0.975) {
+        if (y > height && Math.random() > 0.975) {
           drops[i] = 0;
         }
 
         drops[i]++;
       }
+
+      animationFrameId = window.requestAnimationFrame(draw);
     };
 
-    const interval = setInterval(draw, 50);
+    animationFrameId = window.requestAnimationFrame(draw);
 
     return () => {
-      clearInterval(interval);
-      window.removeEventListener("resize", handleResize);
+      window.cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", resizeCanvas);
     };
   }, [shouldRender]);
 
