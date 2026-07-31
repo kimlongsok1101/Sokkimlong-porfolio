@@ -76,7 +76,6 @@ export default function AdminPage() {
   const [projectForm, setProjectForm] = useState<{
     title: string;
     description: string;
-    fullDetails: string;
     category: ProjectCategory;
     tags: string;
     image: string;
@@ -85,7 +84,6 @@ export default function AdminPage() {
   }>({
     title: "",
     description: "",
-    fullDetails: "",
     category: "Design",
     tags: "",
     image: "",
@@ -358,7 +356,6 @@ export default function AdminPage() {
     setProjectForm({
       title: "",
       description: "",
-      fullDetails: "",
       category: projectCategory === "All" ? "Design" : projectCategory,
       tags: "",
       image: "",
@@ -377,7 +374,6 @@ export default function AdminPage() {
     setProjectForm({
       title: project.title,
       description: project.description,
-      fullDetails: project.fullDetails ?? "",
       category: project.category,
       tags: project.tags.join(", "),
       image: project.image ?? "",
@@ -1094,15 +1090,6 @@ export default function AdminPage() {
                       rows={3}
                       value={projectForm.description}
                       onChange={(e) => handleProjectFieldChange("description", e.target.value)}
-                      className="mt-2 w-full rounded-3xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-sm text-slate-400">Full details</span>
-                    <textarea
-                      rows={4}
-                      value={projectForm.fullDetails}
-                      onChange={(e) => handleProjectFieldChange("fullDetails", e.target.value)}
                       className="mt-2 w-full rounded-3xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                     />
                   </label>
