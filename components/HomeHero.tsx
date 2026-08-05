@@ -6,7 +6,7 @@ import { ArrowDown, Sparkles, Terminal, Code2, Database, Users, Music, Gamepad2 
 import { useEffect, useState, type MouseEvent } from "react";
 import { usePageSection } from "@/lib/usePageSection";
 import { defaultHeroSection } from "@/lib/pageSectionDefaults";
-import { useDiscordStatus } from "@/lib/useDiscordStatus";
+import { useDiscordStatus, LanyardActivity } from "@/lib/useDiscordStatus";
 
 const codeSnippet = `const developer = {
   name: "Sokkimlong",
@@ -58,78 +58,95 @@ export default function HomeHero() {
 
   const currentStatus = getStatusConfig();
 
-  const getCurrentActivity = () => {
-    if (!discordData) return null;
+  const getParsedCards = (): Array<{
+    key: string;
+    type: string;
+    title: string;
+    name: string;
+    details: string;
+    image: string | null;
+    smallImage?: string | null;
+    icon: React.JSX.Element;
+    progress?: number;
+    elapsedFormatted?: string | null;
+    durationFormatted?: string;
+  }> => {
+    if (!discordData) return [];
+    const cards = [];
 
-    // 1. Check Spotify first
+    // 1. Add Spotify nicely if active
     if (discordData.listening_to_spotify && discordData.spotify) {
       const { start, end } = discordData.spotify.timestamps;
       const duration = end - start;
       const elapsed = Math.min(Math.max(currentTime - start, 0), duration);
       const progressPercent = Math.min((elapsed / duration) * 100, 100);
 
-      return {
+      cards.push({
+        key: "spotify",
         type: "spotify",
         title: "Listening to Spotify",
         name: discordData.spotify.song,
         details: discordData.spotify.artist,
         image: discordData.spotify.album_art_url,
+        smallImage: null,
         icon: <Music className="w-3.5 h-3.5 text-emerald-400" />,
         progress: progressPercent,
         elapsedFormatted: formatTime(elapsed),
         durationFormatted: formatTime(duration),
-      };
+      });
     }
 
-    // 2. Check any other active applications/games (Type 0 = Playing, Type 1 = Streaming, etc.)
-    const primaryActivity = discordData.activities?.find(
-      (act) => act.type === 0 || act.type === 1 || act.type === 2
-    );
+    // 2. Add other apps/games from activities list (Filtering out custom status type 4 and duplicate "Spotify" activity entry)
+    if (discordData.activities && discordData.activities.length > 0) {
+      discordData.activities.forEach((act: LanyardActivity, index: number) => {
+        if (act.type === 4 || act.name.toLowerCase() === "spotify") return;
 
-    if (primaryActivity) {
-      let imageUrl = null;
-      if (primaryActivity.assets?.large_image) {
-        const largeImage = primaryActivity.assets.large_image;
-        if (largeImage.startsWith("spotify:")) {
-          imageUrl = `https://i.scdn.co/image/${largeImage.replace("spotify:", "")}`;
-        } else if (largeImage.startsWith("mp:external/")) {
-          imageUrl = `https://media.discordapp.net/external/${largeImage.replace("mp:external/", "")}`;
-        } else if (primaryActivity.application_id) {
-          imageUrl = `https://cdn.discordapp.com/app-assets/${primaryActivity.application_id}/${largeImage}.png`;
+        let imageUrl = null;
+        if (act.assets?.large_image) {
+          const largeImage = act.assets.large_image;
+          if (largeImage.startsWith("spotify:")) {
+            imageUrl = `https://i.scdn.co/image/${largeImage.replace("spotify:", "")}`;
+          } else if (largeImage.startsWith("mp:external/")) {
+            imageUrl = `https://media.discordapp.net/external/${largeImage.replace("mp:external/", "")}`;
+          } else if (act.application_id) {
+            imageUrl = `https://cdn.discordapp.com/app-assets/${act.application_id}/${largeImage}.png`;
+          }
         }
-      }
 
-      let elapsedFormatted = null;
-      let progressPercent = null;
-      if (primaryActivity.timestamps?.start) {
-        const start = primaryActivity.timestamps.start;
-        const elapsed = Math.max(currentTime - start, 0);
-        elapsedFormatted = formatTime(elapsed);
-        // If there's an end timestamp (like a timer countdown)
-        if (primaryActivity.timestamps.end) {
-          const end = primaryActivity.timestamps.end;
-          const duration = end - start;
-          const currentElapsed = Math.min(elapsed, duration);
-          progressPercent = Math.min((currentElapsed / duration) * 100, 100);
+        let smallImageUrl = null;
+        if (act.assets?.small_image && act.application_id) {
+          const smallImage = act.assets.small_image;
+          if (smallImage.startsWith("mp:external/")) {
+            smallImageUrl = `https://media.discordapp.net/external/${smallImage.replace("mp:external/", "")}`;
+          } else {
+            smallImageUrl = `https://cdn.discordapp.com/app-assets/${act.application_id}/${smallImage}.png`;
+          }
         }
-      }
 
-      return {
-        type: "app",
-        title: primaryActivity.name,
-        name: primaryActivity.details || primaryActivity.state || "Active",
-        details: primaryActivity.state && primaryActivity.details ? primaryActivity.state : "",
-        image: imageUrl,
-        icon: <Gamepad2 className="w-3.5 h-3.5 text-indigo-400" />,
-        elapsedFormatted,
-        progress: progressPercent,
-      };
+        let elapsedFormatted = null;
+        if (act.timestamps?.start) {
+          const elapsed = Math.max(currentTime - act.timestamps.start, 0);
+          elapsedFormatted = formatTime(elapsed);
+        }
+
+        cards.push({
+          key: `activity-${index}`,
+          type: "app",
+          title: act.type === 0 ? "Playing" : act.name,
+          name: act.name,
+          details: act.details || act.state || "",
+          image: imageUrl,
+          smallImage: smallImageUrl,
+          icon: <Gamepad2 className="w-3.5 h-3.5 text-indigo-400" />,
+          elapsedFormatted,
+        });
+      });
     }
 
-    return null;
+    return cards;
   };
 
-  const currentActivity = getCurrentActivity();
+  const activityCards = getParsedCards();
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 768px)");
@@ -215,8 +232,8 @@ export default function HomeHero() {
 
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-10 items-center z-10">
         
-        {/* LEFT COLUMN: ID Card */}
-        <div className="lg:col-span-5 flex justify-center">
+        {/* LEFT COLUMN: ID Card + Activities Stacked Below */}
+        <div className="lg:col-span-5 flex flex-col gap-4 items-center w-full">
           <motion.div
             initial={{ y: -300, opacity: 0, rotate: -6 }}
             animate={{ y: 0, opacity: 1, rotate: 0 }}
@@ -273,66 +290,8 @@ export default function HomeHero() {
                 </div>
               </div>
 
-              {/* Rich Activity / App Widget Card */}
-              {currentActivity && (
-                <div className="mt-4 w-full bg-slate-950/60 border border-slate-800/80 p-3 rounded-2xl text-left relative overflow-hidden">
-                  <div className="flex items-center gap-3">
-                    {currentActivity.image ? (
-                      <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-slate-900 border border-slate-800">
-                        <Image
-                          src={currentActivity.image}
-                          alt="Activity Thumbnail"
-                          fill
-                          sizes="56px"
-                          className="object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-14 h-14 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
-                        {currentActivity.icon}
-                      </div>
-                    )}
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                        {currentActivity.icon}
-                        <span className="truncate">{currentActivity.title}</span>
-                      </div>
-                      <span className="text-xs font-bold text-slate-100 truncate mt-0.5">
-                        {currentActivity.name}
-                      </span>
-                      {currentActivity.details && (
-                        <span className="text-[11px] text-slate-400 truncate">
-                          {currentActivity.details}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Progress Bar / Elapsed Time Display */}
-                  {currentActivity.type === "spotify" && currentActivity.progress !== null ? (
-                    <div className="mt-3">
-                      <div className="flex justify-between text-[10px] font-mono text-slate-400 mb-1">
-                        <span>{currentActivity.elapsedFormatted}</span>
-                        <span>{currentActivity.durationFormatted}</span>
-                      </div>
-                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-emerald-400 rounded-full transition-all duration-1000 linear"
-                          style={{ width: `${currentActivity.progress}%` }}
-                        />
-                      </div>
-                    </div>
-                  ) : currentActivity.elapsedFormatted ? (
-                    <div className="mt-2 text-[10px] font-mono text-slate-400 flex items-center justify-between pt-2 border-t border-slate-800/50">
-                      <span>Elapsed time:</span>
-                      <span className="text-indigo-400 font-bold">{currentActivity.elapsedFormatted}</span>
-                    </div>
-                  ) : null}
-                </div>
-              )}
-
               {/* LIVE VISITOR COUNT BADGE */}
-              <div className="mt-3 pt-3 border-t border-slate-800/50 w-full flex items-center justify-center gap-2 text-xs font-mono text-slate-300 bg-slate-950/50 py-2 rounded-xl">
+              <div className="mt-4 pt-3 border-t border-slate-800/50 w-full flex items-center justify-center gap-2 text-xs font-mono text-slate-300 bg-slate-950/50 py-2 rounded-xl">
                 <Users className="w-4 h-4 text-indigo-400" />
                 <span>Total Visitors:</span>
                 <span className="text-indigo-400 font-bold">
@@ -342,6 +301,72 @@ export default function HomeHero() {
 
             </div>
           </motion.div>
+
+          {/* BELOW ID CARD: Stacked Multiple Activity / App Widget Cards */}
+          {activityCards.length > 0 && (
+            <div className="w-full max-w-sm flex flex-col gap-3">
+              {activityCards.map((card) => (
+                <div key={card.key} className="w-full bg-slate-900/90 border border-slate-800 backdrop-blur-xl p-4 rounded-2xl text-left relative overflow-hidden shadow-xl">
+                  <span className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                    {card.title}
+                  </span>
+                  
+                  <div className="flex items-center gap-3">
+                    {card.image ? (
+                      <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-slate-950 border border-slate-800">
+                        <Image
+                          src={card.image}
+                          alt="Thumbnail"
+                          fill
+                          sizes="56px"
+                          className="object-cover"
+                        />
+                        {card.smallImage && (
+                          <div className="absolute bottom-0 right-0 w-5 h-5 rounded-full overflow-hidden border border-slate-900 bg-slate-950">
+                            <Image src={card.smallImage} alt="Badge" fill sizes="20px" className="object-cover" />
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
+                        {card.icon}
+                      </div>
+                    )}
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <span className="text-xs font-bold text-slate-100 truncate">
+                        {card.name}
+                      </span>
+                      {card.details && (
+                        <span className="text-[11px] text-slate-400 truncate">
+                          {card.details}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {card.type === "spotify" && card.progress !== undefined && card.progress !== null ? (
+                    <div className="mt-3">
+                      <div className="flex justify-between text-[10px] font-mono text-slate-400 mb-1">
+                        <span>{card.elapsedFormatted}</span>
+                        <span>{card.durationFormatted}</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-emerald-400 rounded-full transition-all duration-1000 linear"
+                          style={{ width: `${card.progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  ) : card.elapsedFormatted ? (
+                    <div className="mt-2 text-[10px] font-mono text-slate-400 flex items-center gap-1.5 pt-2 border-t border-slate-800/50">
+                      <span>🎮</span>
+                      <span>{card.elapsedFormatted}</span>
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* RIGHT COLUMN: Interactive Code Editor Box */}
