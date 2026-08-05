@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabaseClient";
 
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "";
@@ -33,7 +33,7 @@ export default function AdminHistoryPage() {
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [postedLoginRecord, setPostedLoginRecord] = useState(false);
+  const postedLoginRecordRef = useRef(false);
 
   const isAdmin = sessionEmail?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
@@ -58,8 +58,9 @@ export default function AdminHistoryPage() {
         // If this is the configured admin email, post a login record so admin history captures
         // sign-ins regardless of provider (password or social). Use browser geolocation when available.
         try {
-          if (session.user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && !postedLoginRecord) {
+          if (session.user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && !postedLoginRecordRef.current) {
             const postRecord = async (details: Record<string, unknown>) => {
+              postedLoginRecordRef.current = true;
               try {
                 await fetch("/api/admin/login-history", {
                   method: "POST",
@@ -71,10 +72,9 @@ export default function AdminHistoryPage() {
                     details,
                   }),
                 });
-              } catch (err) {
+              } catch {
                 // ignore network errors
               }
-              setPostedLoginRecord(true);
             };
 
             const deviceModel = navigator?.userAgent ?? "Unknown device";
@@ -96,9 +96,9 @@ export default function AdminHistoryPage() {
               postRecord({ deviceModel });
             }
           }
-        } catch (e) {
+        } catch {
           // swallow errors - don't block UI
-          setPostedLoginRecord(true);
+          postedLoginRecordRef.current = true;
         }
       }
       setAuthLoading(false);

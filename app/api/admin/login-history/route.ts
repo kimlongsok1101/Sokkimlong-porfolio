@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabaseAdminClient";
 
+const LOGIN_RELEVANT_STATUSES = new Set(["success", "failed", "failure", "fail", "error"]);
+
 function getClientIp(request: NextRequest) {
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) {
@@ -33,7 +35,12 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const records = (data ?? []).map((record) => ({
+  const records = (data ?? [])
+    .filter((record) => {
+      const status = typeof record.status === "string" ? record.status.toLowerCase() : "";
+      return LOGIN_RELEVANT_STATUSES.has(status);
+    })
+    .map((record) => ({
     id: record.id,
     email: record.email,
     ip: record.ip,
@@ -43,15 +50,15 @@ export async function GET() {
         ? String((record.details as Record<string, unknown>).deviceModel)
         : "Unknown device",
     deviceLocation: (() => {
-      const details = record.details && typeof record.details === "object" ? (record.details as Record<string, any>) : null;
+      const details = record.details && typeof record.details === "object" ? (record.details as Record<string, unknown>) : null;
       if (details && "deviceLocation" in details) {
         const dl = details.deviceLocation;
         // If the deviceLocation is already a string (e.g., "123 Main St" or "lat,lng"), return it directly
         if (typeof dl === "string") return dl;
         // If it's an object with lat/lng or latitude/longitude fields, format as "lat,lng"
         if (dl && typeof dl === "object") {
-          const lat = dl.lat ?? dl.latitude ?? dl.latitude_deg ?? dl.lat_deg;
-          const lng = dl.lng ?? dl.longitude ?? dl.longitude_deg ?? dl.lng_deg;
+          const lat = (dl as Record<string, unknown>).lat ?? (dl as Record<string, unknown>).latitude ?? (dl as Record<string, unknown>).latitude_deg ?? (dl as Record<string, unknown>).lat_deg;
+          const lng = (dl as Record<string, unknown>).lng ?? (dl as Record<string, unknown>).longitude ?? (dl as Record<string, unknown>).longitude_deg ?? (dl as Record<string, unknown>).lng_deg;
           if ((lat !== undefined && lat !== null) && (lng !== undefined && lng !== null)) {
             return `${lat},${lng}`;
           }
@@ -95,11 +102,31 @@ export async function POST(request: NextRequest) {
   }
 
   const ip = getClientIp(request) ?? "unknown";
+  const normalizedStatus = status.toLowerCase();
+  const duplicateWindow = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+
+  const { data: recentMatches, error: recentMatchesError } = await supabase
+    .from("admin_login_audit")
+    .select("id")
+    .eq("email", email)
+    .eq("reason", reason)
+    .eq("status", normalizedStatus)
+    .gte("created_at", duplicateWindow)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (recentMatchesError) {
+    return NextResponse.json({ error: recentMatchesError.message }, { status: 500 });
+  }
+
+  if (recentMatches && recentMatches.length > 0) {
+    return NextResponse.json({ success: true, deduped: true }, { status: 200 });
+  }
 
   const { error } = await supabase.from("admin_login_audit").insert({
     email,
     ip,
-    status,
+    status: normalizedStatus,
     reason,
     details,
     created_at: new Date().toISOString(),
