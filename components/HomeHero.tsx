@@ -16,11 +16,9 @@ const codeSnippet = `const developer = {
 export default function HomeHero() {
   const [displayedCode, setDisplayedCode] = useState("");
   const [isMounted, setIsMounted] = useState(false);
-  const [visitorCount, setVisitorCount] = useState<number | null>(null);
+  const [visitorCount] = useState<number | null>(0);
   const [isMobile, setIsMobile] = useState(false);
-  
-  // Discord Status State
-  const [discordStatus, setDiscordStatus] = useState<string>("offline");
+  const discordStatus: string = "offline";
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 768px)");
@@ -46,79 +44,44 @@ export default function HomeHero() {
 
     if (isMobile) {
       setDisplayedCode(codeSnippet);
-      setVisitorCount(0);
       return;
     }
 
-    // REPLACE WITH YOUR ACTUAL DISCORD USER ID
-    const DISCORD_USER_ID = "745943593432121465";
+    let currentIndex = 0;
+    let typingInterval: number | null = null;
+    let restartTimeout: number | null = null;
 
-    // Lanyard WebSocket Connection for Real-Time Status Sync
-    function connectLanyard() {
-      const socket = new WebSocket("wss://api.lanyard.rest/socket");
+    const startTyping = () => {
+      setDisplayedCode("");
+      currentIndex = 0;
 
-      socket.onopen = () => {
-        socket.send(
-          JSON.stringify({
-            op: 2,
-            d: { subscribe_to_id: DISCORD_USER_ID },
-          })
-        );
-      };
+      typingInterval = window.setInterval(() => {
+        currentIndex += 1;
+        setDisplayedCode(codeSnippet.slice(0, currentIndex));
 
-      socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.t === "INIT_STATE" || data.t === "PRESENCE_UPDATE") {
-          setDiscordStatus(data.d.discord_status);
+        if (currentIndex >= codeSnippet.length) {
+          if (typingInterval !== null) {
+            window.clearInterval(typingInterval);
+            typingInterval = null;
+          }
+
+          restartTimeout = window.setTimeout(() => {
+            startTyping();
+          }, 10000);
         }
-      };
+      }, 20);
+    };
 
-      socket.onclose = () => {
-        setTimeout(connectLanyard, 5000); // Reconnect if dropped
-      };
-    }
+    startTyping();
 
-    connectLanyard();
-
-    // Visitor count logic
-    const hasVisited = sessionStorage.getItem("has_visited_portfolio_v3");
-
-    if (!hasVisited) {
-      sessionStorage.setItem("has_visited_portfolio_v3", "true");
-      fetch("https://abacus.jasoncameron.dev/hit/sokkimlong-portfolio/visits-v3")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data && typeof data.value === "number") {
-            setVisitorCount(data.value);
-          }
-        })
-        .catch((err) => {
-          console.error("Failed to load visitor count:", err);
-          setVisitorCount(0);
-        });
-    } else {
-      fetch("https://abacus.jasoncameron.dev/get/sokkimlong-portfolio/visits-v3")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data && typeof data.value === "number") {
-            setVisitorCount(data.value);
-          }
-        })
-        .catch((err) => {
-          console.error("Failed to load visitor count:", err);
-          setVisitorCount(0);
-        });
-    }
-
-    // Typing effect
-    let index = 0;
-    const interval = setInterval(() => {
-      setDisplayedCode(codeSnippet.slice(0, index));
-      index++;
-      if (index > codeSnippet.length) clearInterval(interval);
-    }, 25);
-
-    return () => clearInterval(interval);
+    return () => {
+      if (typingInterval !== null) {
+        window.clearInterval(typingInterval);
+      }
+      if (restartTimeout !== null) {
+        window.clearTimeout(restartTimeout);
+      }
+    };
   }, [isMobile]);
 
   // Helper mappings for Discord status color & label

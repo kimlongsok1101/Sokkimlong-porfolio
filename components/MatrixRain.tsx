@@ -38,16 +38,16 @@ export default function MatrixRain() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+    const dpr = 1;
 
     const resizeCanvas = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
+      canvas.width = width;
+      canvas.height = height;
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
     };
 
     resizeCanvas();
@@ -60,6 +60,7 @@ export default function MatrixRain() {
 
     let animationFrameId = 0;
     let lastFrameTime = 0;
+    const frameInterval = 1000 / 30;
 
     const draw = (timestamp: number) => {
       if (document.hidden) {
@@ -67,7 +68,7 @@ export default function MatrixRain() {
         return;
       }
 
-      if (timestamp - lastFrameTime < 50) {
+      if (timestamp - lastFrameTime < frameInterval) {
         animationFrameId = window.requestAnimationFrame(draw);
         return;
       }
@@ -76,7 +77,7 @@ export default function MatrixRain() {
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
 
-      ctx.fillStyle = "rgba(2, 6, 23, 0.08)";
+      ctx.fillStyle = "rgba(2, 6, 23, 0.12)";
       ctx.fillRect(0, 0, width, height);
 
       ctx.fillStyle = "#6366f1";

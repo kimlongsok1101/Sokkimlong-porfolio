@@ -1,10 +1,14 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Terminal, Menu, X, Code2, Bell, Moon, Sun } from "lucide-react";
-import { useNotifications } from "@/lib/useNotifications";
-import NotificationsPanel from "@/components/NotificationsPanel";
+
+const NotificationsPanel = dynamic(() => import("@/components/NotificationsPanel"), {
+  ssr: false,
+  loading: () => null,
+});
 
 const navLinks = [
   { name: "Home", href: "#home" },
@@ -22,7 +26,6 @@ export default function Navbar() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [mounted, setMounted] = useState(false);
-  const { unreadCount } = useNotifications();
 
   useEffect(() => {
     let ticking = false;
@@ -184,15 +187,6 @@ export default function Navbar() {
             aria-label="Notifications"
           >
             <Bell className="w-4 h-4" />
-            {unreadCount > 0 && (
-              <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="absolute -top-1 -right-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500 text-white text-xs font-bold"
-              >
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </motion.span>
-            )}
           </button>
 
           <a
@@ -264,11 +258,6 @@ export default function Navbar() {
                 className="py-2 px-3 rounded-lg bg-slate-900/50 border border-slate-800 text-slate-300 hover:text-slate-100 transition-colors flex items-center justify-between"
               >
                 <span>Notifications</span>
-                {unreadCount > 0 && (
-                  <motion.span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500 text-white text-xs font-bold">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </motion.span>
-                )}
               </button>
 
               <a
