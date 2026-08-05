@@ -71,6 +71,103 @@ const containsBlockedWord = (text: string) => {
   });
 };
 
+const MAX_CONTACT_ATTEMPTS = 3;
+const CONTACT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const CONTACT_LOCKOUT_MS = 10 * 60 * 1000; // 10 minutes
+
+function getClientIp(request: Request) {
+  const headerKeys = [
+    "x-forwarded-for",
+    "x-real-ip",
+    "cf-connecting-ip",
+    "true-client-ip",
+    "fastly-client-ip",
+    "x-client-ip",
+    "x-cluster-client-ip",
+    "forwarded",
+  ];
+
+  for (const key of headerKeys) {
+    const value = request.headers.get(key);
+    if (!value) continue;
+
+    if (key === "forwarded") {
+      const match = value.match(/for=([^;,+]+)/i);
+      if (match) {
+        return match[1].trim();
+      }
+    }
+
+    return value.split(",")[0]?.trim() ?? "unknown";
+  }
+
+  return "unknown";
+}
+
+async function checkContactRateLimit(
+  supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
+  ip: string,
+  email: string,
+) {
+  const now = Date.now();
+  const windowStart = new Date(now - CONTACT_WINDOW_MS).toISOString();
+  const useIpRateLimit = ip && ip.toLowerCase() !== "unknown";
+
+  const countQuery = supabase
+    .from("messages")
+    .select("*", { count: "exact", head: true })
+    .gte("created_at", windowStart);
+
+  if (useIpRateLimit) {
+    countQuery.eq("ip", ip);
+  } else {
+    countQuery.eq("email", email);
+  }
+
+  const { count, error: countError } = await countQuery;
+  if (countError) {
+    console.warn("Contact rate limit check failed", countError.message);
+    return { allowed: true, retryAfter: 0 };
+  }
+
+  const recentCount = count ?? 0;
+  if (recentCount < MAX_CONTACT_ATTEMPTS) {
+    return { allowed: true, retryAfter: 0 };
+  }
+
+  const latestQuery = supabase
+    .from("messages")
+    .select("created_at")
+    .gte("created_at", windowStart)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (useIpRateLimit) {
+    latestQuery.eq("ip", ip);
+  } else {
+    latestQuery.eq("email", email);
+  }
+
+  const latestResult = await latestQuery.maybeSingle();
+
+  if (latestResult.error) {
+    console.warn("Contact rate limit latest timestamp check failed", latestResult.error.message);
+    return { allowed: true, retryAfter: 0 };
+  }
+
+  const lastCreatedAt = latestResult.data?.created_at ? new Date(latestResult.data.created_at).getTime() : null;
+  if (!lastCreatedAt) {
+    return { allowed: true, retryAfter: 0 };
+  }
+
+  const retryAfterSeconds = Math.max(0, Math.ceil((lastCreatedAt + CONTACT_LOCKOUT_MS - now) / 1000));
+  if (retryAfterSeconds > 0) {
+    return { allowed: false, retryAfter: retryAfterSeconds };
+  }
+
+  return { allowed: true, retryAfter: 0 };
+}
+
 const containsBlockedLink = (text: string) => {
   return /(https?:\/\/|www\.|<\s*a\b|mailto:|\.[a-z]{2,}\b)(\/|$|\s)/i.test(text);
 };
@@ -137,9 +234,22 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const { name, email, content } = body;
+  const ip = getClientIp(request);
+  const normalizedEmail = String(email).trim().toLowerCase();
 
   if (!name || !email || !content) {
     return NextResponse.json({ error: "Missing required fields: name, email, content." }, { status: 400 });
+  }
+
+  const rateLimitResult = await checkContactRateLimit(supabase, ip, normalizedEmail);
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      {
+        error: "Too many contact requests. Please wait before sending another message.",
+        retryAfter: rateLimitResult.retryAfter,
+      },
+      { status: 429 },
+    );
   }
 
   if (containsBlockedWord(name) || containsBlockedWord(content)) {
@@ -155,7 +265,7 @@ export async function POST(request: Request) {
 
   const { data, error } = await supabase
     .from("messages")
-    .insert([{ name, email, content }])
+    .insert([{ name, email, content, ip }])
     .select();
 
   if (error) {

@@ -7,6 +7,7 @@ create table if not exists public.messages (
   name text not null,
   email text not null,
   content text not null,
+  ip text,
   created_at timestamptz default now()
 );
 

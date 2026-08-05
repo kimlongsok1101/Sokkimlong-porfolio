@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { motion, Variants } from "framer-motion";
 import { Sparkles, ArrowUpRight } from "lucide-react";
 import { usePageSection } from "@/lib/usePageSection";
@@ -41,7 +41,30 @@ export default function Contact() {
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+    const stored = window.localStorage.getItem("contactCooldownUntil");
+    if (!stored) {
+      return null;
+    }
+    const timestamp = Number(stored);
+    return Number.isFinite(timestamp) && timestamp > Date.now() ? timestamp : null;
+  });
   const [popup, setPopup] = useState({ visible: false, message: "" });
+  const COOLDOWN_STORAGE_KEY = "contactCooldownUntil";
+
+  const updateCooldown = (timestamp: number | null) => {
+    setCooldownUntil(timestamp);
+    if (typeof window !== "undefined") {
+      if (timestamp && timestamp > Date.now()) {
+        window.localStorage.setItem(COOLDOWN_STORAGE_KEY, String(timestamp));
+      } else {
+        window.localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+      }
+    }
+  };
 
   const blockedWords = [
     "racist",
@@ -109,8 +132,35 @@ export default function Contact() {
     setPopup({ visible: false, message: "" });
   };
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem(COOLDOWN_STORAGE_KEY);
+    if (stored) {
+      const timestamp = Number(stored);
+      if (Number.isFinite(timestamp) && timestamp > Date.now()) {
+        setCooldownUntil(timestamp);
+      } else {
+        window.localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!cooldownUntil) return;
+    const timeout = window.setTimeout(() => updateCooldown(null), Math.max(0, cooldownUntil - Date.now()));
+    return () => window.clearTimeout(timeout);
+  }, [cooldownUntil]);
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (cooldownUntil && cooldownUntil > Date.now()) {
+      setFeedback({
+        type: "error",
+        message: `Please wait ${Math.ceil((cooldownUntil - Date.now()) / 1000)} seconds before sending another message.`,
+      });
+      return;
+    }
 
     if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
       setFeedback({ type: "error", message: "Please fill in your name, email, and message." });
@@ -149,6 +199,10 @@ export default function Contact() {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
+        if (response.status === 429 && typeof result.retryAfter === "number") {
+          updateCooldown(Date.now() + result.retryAfter * 1000);
+        }
+
         const errorMessage = result.error || "Unable to send your message right now.";
         showPopupAlert(errorMessage);
         throw new Error(errorMessage);
@@ -331,10 +385,14 @@ export default function Contact() {
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || Boolean(cooldownUntil && cooldownUntil > Date.now())}
             className="inline-flex items-center justify-center rounded-xl bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {isSubmitting ? "Sending..." : "Send Message"}
+            {isSubmitting
+              ? "Sending..."
+              : cooldownUntil && cooldownUntil > Date.now()
+              ? `Wait ${Math.ceil((cooldownUntil - Date.now()) / 1000)}s`
+              : "Send Message"}
           </button>
 
           {feedback.message ? (
