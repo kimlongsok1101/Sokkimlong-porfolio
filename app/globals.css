@@ -37,10 +37,19 @@ html.light {
 }
 
 html,
-body,
-*,
-*:before,
-*:after {
+body {
+  /* Keep default behavior; avoid applying transitions to every element which is expensive on mobile
+     and increases style recalculation / repaints. Use the .theme-transition class on elements that
+     should animate when theme/colors change. */
+}
+
+/* Use a small targeted set of selectors and an explicit class for theme/visual transitions. Add
+   the class "theme-transition" to elements that should animate (e.g., top bars, cards, buttons). */
+.theme-transition,
+.btn,
+.nav-item,
+.input,
+.card {
   transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease, fill 0.35s ease, stroke 0.35s ease;
 }
 
