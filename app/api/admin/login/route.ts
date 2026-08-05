@@ -58,6 +58,54 @@ function getDeviceLocationFromIp(ip: string) {
   return ip;
 }
 
+async function getIpLocation(ip: string) {
+  const initialFallback = getDeviceLocationFromIp(ip);
+  if (!ip || ip === "unknown" || /^127\.|^::1$/.test(ip) || ip === "localhost") {
+    return initialFallback;
+  }
+
+  const parts = ip.split(".");
+  if (parts.length === 4 && /^\d+$/.test(parts.join(""))) {
+    if (parts[0] === "10" || parts[0] === "172" || parts[0] === "192") {
+      return initialFallback;
+    }
+  }
+
+  try {
+    const response = await fetch(`https://ipapi.co/${encodeURIComponent(ip)}/json/`, {
+      headers: { Accept: "application/json" },
+    });
+
+    if (!response.ok) {
+      return initialFallback;
+    }
+
+    const payload = await response.json().catch(() => null);
+    if (!payload || typeof payload !== "object") {
+      return initialFallback;
+    }
+
+    const record = payload as Record<string, unknown>;
+    const latitude = record.latitude;
+    const longitude = record.longitude;
+    if (typeof latitude === "number" && typeof longitude === "number") {
+      return `${latitude},${longitude}`;
+    }
+
+    const city = typeof record.city === "string" ? record.city.trim() : "";
+    const region = typeof record.region === "string" ? record.region.trim() : "";
+    const country = typeof record.country_name === "string" ? record.country_name.trim() : "";
+    const locationParts = [city, region, country].filter(Boolean);
+    if (locationParts.length > 0) {
+      return locationParts.join(", ");
+    }
+  } catch {
+    // Fall back to the simple IP-based label if geolocation lookup fails.
+  }
+
+  return initialFallback;
+}
+
 function parseDeviceName(userAgent: string) {
   const ua = userAgent.toLowerCase();
 
@@ -237,8 +285,8 @@ export async function POST(request: NextRequest) {
   const clientDeviceLocation = typeof details.deviceLocation === "string" ? details.deviceLocation : null;
   const deviceModel = clientDeviceModel ?? getDeviceModel(request);
   const clientIp = getClientIp(request);
-  const deviceLocation = clientDeviceLocation ?? getDeviceLocationFromIp(clientIp);
-  const baseAuditDetails = { deviceModel, deviceLocation };
+  const resolvedDeviceLocation = clientDeviceLocation ?? (await getIpLocation(clientIp));
+  const baseAuditDetails = { deviceModel, deviceLocation: resolvedDeviceLocation };
   const localRateLimit = checkRateLimit(rateLimitKey);
   if (!localRateLimit.allowed) {
     if (canPersist) {
