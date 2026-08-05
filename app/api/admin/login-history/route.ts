@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabaseAdminClient";
 
+function getClientIp(request: NextRequest) {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) {
+    return forwarded.split(",")[0]?.trim() ?? "unknown";
+  }
+
+  return request.headers.get("x-real-ip") ?? "unknown";
+}
+
 export async function GET() {
   const adminEmail = (process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "").trim().toLowerCase();
   const supabase = createSupabaseAdminClient();
@@ -60,6 +69,47 @@ export async function GET() {
   }));
 
   return NextResponse.json({ data: records }, { status: 200 });
+}
+
+export async function POST(request: NextRequest) {
+  const adminEmail = (process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "").trim().toLowerCase();
+  const supabase = createSupabaseAdminClient();
+
+  if (!adminEmail) {
+    return NextResponse.json({ error: "Admin email is not configured." }, { status: 500 });
+  }
+
+  if (!supabase) {
+    return NextResponse.json({ error: "Supabase is not configured." }, { status: 500 });
+  }
+
+  const body = await request.json().catch(() => ({}));
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  const status = typeof body.status === "string" ? body.status : "unknown";
+  const reason = typeof body.reason === "string" ? body.reason : "client_record";
+  const details = typeof body.details === "object" && body.details !== null ? body.details : {};
+
+  // Only allow recording for the configured admin email
+  if (!email || email !== adminEmail) {
+    return NextResponse.json({ error: "Unauthorized: email mismatch." }, { status: 403 });
+  }
+
+  const ip = getClientIp(request) ?? "unknown";
+
+  const { error } = await supabase.from("admin_login_audit").insert({
+    email,
+    ip,
+    status,
+    reason,
+    details,
+    created_at: new Date().toISOString(),
+  });
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true }, { status: 200 });
 }
 
 export async function DELETE(request: NextRequest) {

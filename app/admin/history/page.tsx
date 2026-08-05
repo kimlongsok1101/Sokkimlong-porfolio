@@ -33,6 +33,7 @@ export default function AdminHistoryPage() {
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [postedLoginRecord, setPostedLoginRecord] = useState(false);
 
   const isAdmin = sessionEmail?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
@@ -53,6 +54,52 @@ export default function AdminHistoryPage() {
 
       if (session?.user?.email) {
         setSessionEmail(session.user.email);
+
+        // If this is the configured admin email, post a login record so admin history captures
+        // sign-ins regardless of provider (password or social). Use browser geolocation when available.
+        try {
+          if (session.user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && !postedLoginRecord) {
+            const postRecord = async (details: Record<string, unknown>) => {
+              try {
+                await fetch("/api/admin/login-history", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    email: session.user.email,
+                    status: "success",
+                    reason: "successful_login_client",
+                    details,
+                  }),
+                });
+              } catch (err) {
+                // ignore network errors
+              }
+              setPostedLoginRecord(true);
+            };
+
+            const deviceModel = navigator?.userAgent ?? "Unknown device";
+
+            if (typeof navigator !== "undefined" && navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                  const deviceLocation = `${pos.coords.latitude},${pos.coords.longitude}`;
+                  postRecord({ deviceModel, deviceLocation });
+                },
+                () => {
+                  // denied or unavailable
+                  postRecord({ deviceModel });
+                },
+                { timeout: 5000 }
+              );
+            } else {
+              // no geolocation available
+              postRecord({ deviceModel });
+            }
+          }
+        } catch (e) {
+          // swallow errors - don't block UI
+          setPostedLoginRecord(true);
+        }
       }
       setAuthLoading(false);
 
@@ -200,8 +247,8 @@ export default function AdminHistoryPage() {
                 <div key={record.id} className="rounded-3xl border border-slate-800/80 bg-slate-950/80 p-5">
                   <div className="grid gap-4 sm:grid-cols-4">
                     <div>
-                      <p className="text-sm text-slate-400">Device location</p>
-                      <p className="text-slate-100 font-semibold">
+                      <p className="text-xs text-slate-400">Connection location</p>
+                      <p className="mt-1 text-slate-300 font-extrabold text-lg">
                         {record.deviceLocation || "Unknown location"}
                       </p>
                       {getMapsUrl(record.deviceLocation) ? (
