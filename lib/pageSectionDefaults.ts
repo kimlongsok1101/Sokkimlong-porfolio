@@ -39,11 +39,22 @@ export type ContactSectionPayload = {
   location: string;
 };
 
+export type HeroSectionPayload = {
+  status: string;
+  visitorCount: number;
+};
+
 export type PageSectionPayload =
   | AboutSectionPayload
   | SkillsSectionPayload
   | ProjectsSectionPayload
-  | ContactSectionPayload;
+  | ContactSectionPayload
+  | HeroSectionPayload;
+
+export const defaultHeroSection: HeroSectionPayload = {
+  status: "Available for Hire",
+  visitorCount: 0,
+};
 
 export const defaultAboutSection: AboutSectionPayload = {
   heading: "Who is Sokkimlong?",

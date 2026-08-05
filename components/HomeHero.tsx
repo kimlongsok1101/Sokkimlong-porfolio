@@ -2,8 +2,11 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowDown, Sparkles, Terminal, Code2, Database, Users } from "lucide-react";
-import { useState, useEffect, type MouseEvent } from "react";
+import { ArrowDown, Sparkles, Terminal, Code2, Database, Users, Music, Gamepad2 } from "lucide-react";
+import { useEffect, useState, type MouseEvent } from "react";
+import { usePageSection } from "@/lib/usePageSection";
+import { defaultHeroSection } from "@/lib/pageSectionDefaults";
+import { useDiscordStatus } from "@/lib/useDiscordStatus";
 
 const codeSnippet = `const developer = {
   name: "Sokkimlong",
@@ -13,12 +16,120 @@ const codeSnippet = `const developer = {
   status: "Available for Hire"
 };`;
 
+function formatTime(ms: number) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
 export default function HomeHero() {
   const [displayedCode, setDisplayedCode] = useState("");
   const [isMounted, setIsMounted] = useState(false);
-  const [visitorCount] = useState<number | null>(0);
   const [isMobile, setIsMobile] = useState(false);
-  const discordStatus: string = "offline";
+  const [currentTime, setCurrentTime] = useState<number>(Date.now());
+  
+  const { payload: heroPayload } = usePageSection("hero", defaultHeroSection);
+  const visitorCountValue = Number(heroPayload.visitorCount ?? defaultHeroSection.visitorCount);
+  const visitorCount = Number.isFinite(visitorCountValue) ? visitorCountValue : 0;
+
+  const discordData = useDiscordStatus("745943593432121465");
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const getStatusConfig = () => {
+    const rawStatus = discordData?.discord_status || "offline";
+    switch (rawStatus) {
+      case "online":
+        return { color: "bg-emerald-400", ping: "animate-ping", label: "Online" };
+      case "idle":
+        return { color: "bg-amber-400", ping: "", label: "Idle" };
+      case "dnd":
+        return { color: "bg-rose-500", ping: "", label: "Do Not Disturb" };
+      default:
+        return { color: "bg-slate-500", ping: "", label: "Offline" };
+    }
+  };
+
+  const currentStatus = getStatusConfig();
+
+  const getCurrentActivity = () => {
+    if (!discordData) return null;
+
+    // 1. Check Spotify first
+    if (discordData.listening_to_spotify && discordData.spotify) {
+      const { start, end } = discordData.spotify.timestamps;
+      const duration = end - start;
+      const elapsed = Math.min(Math.max(currentTime - start, 0), duration);
+      const progressPercent = Math.min((elapsed / duration) * 100, 100);
+
+      return {
+        type: "spotify",
+        title: "Listening to Spotify",
+        name: discordData.spotify.song,
+        details: discordData.spotify.artist,
+        image: discordData.spotify.album_art_url,
+        icon: <Music className="w-3.5 h-3.5 text-emerald-400" />,
+        progress: progressPercent,
+        elapsedFormatted: formatTime(elapsed),
+        durationFormatted: formatTime(duration),
+      };
+    }
+
+    // 2. Check any other active applications/games (Type 0 = Playing, Type 1 = Streaming, etc.)
+    const primaryActivity = discordData.activities?.find(
+      (act) => act.type === 0 || act.type === 1 || act.type === 2
+    );
+
+    if (primaryActivity) {
+      let imageUrl = null;
+      if (primaryActivity.assets?.large_image) {
+        const largeImage = primaryActivity.assets.large_image;
+        if (largeImage.startsWith("spotify:")) {
+          imageUrl = `https://i.scdn.co/image/${largeImage.replace("spotify:", "")}`;
+        } else if (largeImage.startsWith("mp:external/")) {
+          imageUrl = `https://media.discordapp.net/external/${largeImage.replace("mp:external/", "")}`;
+        } else if (primaryActivity.application_id) {
+          imageUrl = `https://cdn.discordapp.com/app-assets/${primaryActivity.application_id}/${largeImage}.png`;
+        }
+      }
+
+      let elapsedFormatted = null;
+      let progressPercent = null;
+      if (primaryActivity.timestamps?.start) {
+        const start = primaryActivity.timestamps.start;
+        const elapsed = Math.max(currentTime - start, 0);
+        elapsedFormatted = formatTime(elapsed);
+        // If there's an end timestamp (like a timer countdown)
+        if (primaryActivity.timestamps.end) {
+          const end = primaryActivity.timestamps.end;
+          const duration = end - start;
+          const currentElapsed = Math.min(elapsed, duration);
+          progressPercent = Math.min((currentElapsed / duration) * 100, 100);
+        }
+      }
+
+      return {
+        type: "app",
+        title: primaryActivity.name,
+        name: primaryActivity.details || primaryActivity.state || "Active",
+        details: primaryActivity.state && primaryActivity.details ? primaryActivity.state : "",
+        image: imageUrl,
+        icon: <Gamepad2 className="w-3.5 h-3.5 text-indigo-400" />,
+        elapsedFormatted,
+        progress: progressPercent,
+      };
+    }
+
+    return null;
+  };
+
+  const currentActivity = getCurrentActivity();
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 768px)");
@@ -75,30 +186,10 @@ export default function HomeHero() {
     startTyping();
 
     return () => {
-      if (typingInterval !== null) {
-        window.clearInterval(typingInterval);
-      }
-      if (restartTimeout !== null) {
-        window.clearTimeout(restartTimeout);
-      }
+      if (typingInterval !== null) window.clearInterval(typingInterval);
+      if (restartTimeout !== null) window.clearTimeout(restartTimeout);
     };
   }, [isMobile]);
-
-  // Helper mappings for Discord status color & label
-  const getStatusConfig = (status: string) => {
-    switch (status) {
-      case "online":
-        return { color: "bg-emerald-400", ping: "animate-ping", label: "Online" };
-      case "idle":
-        return { color: "bg-amber-400", ping: "", label: "Idle" };
-      case "dnd":
-        return { color: "bg-rose-500", ping: "", label: "Do Not Disturb" };
-      default:
-        return { color: "bg-slate-500", ping: "", label: "Offline" };
-    }
-  };
-
-  const currentStatus = getStatusConfig(discordStatus);
 
   const handleScrollToAbout = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
@@ -114,10 +205,7 @@ export default function HomeHero() {
       {/* Background Animated Glow */}
       {!isMobile ? (
         <motion.div
-          animate={{
-            scale: [1, 1.25, 1],
-            opacity: [0.25, 0.4, 0.25],
-          }}
+          animate={{ scale: [1, 1.25, 1], opacity: [0.25, 0.4, 0.25] }}
           transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
           className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[140px] pointer-events-none"
         />
@@ -127,7 +215,7 @@ export default function HomeHero() {
 
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-10 items-center z-10">
         
-        {/* LEFT COLUMN: Dropping ID Card */}
+        {/* LEFT COLUMN: ID Card */}
         <div className="lg:col-span-5 flex justify-center">
           <motion.div
             initial={{ y: -300, opacity: 0, rotate: -6 }}
@@ -140,7 +228,7 @@ export default function HomeHero() {
             
             <div className="flex flex-col items-center text-center">
               
-              {/* Local Picture Avatar Frame */}
+              {/* Profile Avatar Frame */}
               <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-indigo-500/30 p-1 mb-4 bg-slate-950">
                 <Image
                   src="/profile.jpg"
@@ -167,24 +255,88 @@ export default function HomeHero() {
                 <div className="h-8 w-px bg-slate-800" />
                 <div>
                   <span className="block text-slate-400 font-medium">Status</span>
-                  <span className="text-slate-200 font-bold flex items-center gap-1.5">
+                  <a
+                    href="https://discord.com/users/745943593432121465"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-slate-200 font-bold flex items-center gap-1.5 transition-colors hover:text-indigo-300"
+                    aria-label="Open Discord profile"
+                  >
                     <span className="relative flex w-2 h-2">
-                      {discordStatus === "online" && (
-                        <span className={`absolute inline-flex h-full w-full rounded-full ${currentStatus.color} opacity-75 animate-ping`} />
+                      {currentStatus.ping && (
+                        <span className={`absolute inline-flex h-full w-full rounded-full ${currentStatus.color} opacity-75 ${currentStatus.ping}`} />
                       )}
                       <span className={`relative inline-flex rounded-full w-2 h-2 ${currentStatus.color}`} />
                     </span>
                     {currentStatus.label}
-                  </span>
+                  </a>
                 </div>
               </div>
 
+              {/* Rich Activity / App Widget Card */}
+              {currentActivity && (
+                <div className="mt-4 w-full bg-slate-950/60 border border-slate-800/80 p-3 rounded-2xl text-left relative overflow-hidden">
+                  <div className="flex items-center gap-3">
+                    {currentActivity.image ? (
+                      <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-slate-900 border border-slate-800">
+                        <Image
+                          src={currentActivity.image}
+                          alt="Activity Thumbnail"
+                          fill
+                          sizes="56px"
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
+                        {currentActivity.icon}
+                      </div>
+                    )}
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                        {currentActivity.icon}
+                        <span className="truncate">{currentActivity.title}</span>
+                      </div>
+                      <span className="text-xs font-bold text-slate-100 truncate mt-0.5">
+                        {currentActivity.name}
+                      </span>
+                      {currentActivity.details && (
+                        <span className="text-[11px] text-slate-400 truncate">
+                          {currentActivity.details}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Progress Bar / Elapsed Time Display */}
+                  {currentActivity.type === "spotify" && currentActivity.progress !== null ? (
+                    <div className="mt-3">
+                      <div className="flex justify-between text-[10px] font-mono text-slate-400 mb-1">
+                        <span>{currentActivity.elapsedFormatted}</span>
+                        <span>{currentActivity.durationFormatted}</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-emerald-400 rounded-full transition-all duration-1000 linear"
+                          style={{ width: `${currentActivity.progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  ) : currentActivity.elapsedFormatted ? (
+                    <div className="mt-2 text-[10px] font-mono text-slate-400 flex items-center justify-between pt-2 border-t border-slate-800/50">
+                      <span>Elapsed time:</span>
+                      <span className="text-indigo-400 font-bold">{currentActivity.elapsedFormatted}</span>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
               {/* LIVE VISITOR COUNT BADGE */}
-              <div className="mt-4 pt-3 border-t border-slate-800/50 w-full flex items-center justify-center gap-2 text-xs font-mono text-slate-300 bg-slate-950/50 py-2 rounded-xl">
+              <div className="mt-3 pt-3 border-t border-slate-800/50 w-full flex items-center justify-center gap-2 text-xs font-mono text-slate-300 bg-slate-950/50 py-2 rounded-xl">
                 <Users className="w-4 h-4 text-indigo-400" />
                 <span>Total Visitors:</span>
                 <span className="text-indigo-400 font-bold">
-                  {visitorCount !== null ? visitorCount.toLocaleString() : "0"}
+                  {visitorCount.toLocaleString()}
                 </span>
               </div>
 
@@ -199,7 +351,6 @@ export default function HomeHero() {
           transition={{ duration: 0.8, delay: 0.3 }}
           className="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl"
         >
-          {/* Terminal Header */}
           <div className="bg-slate-950/80 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-rose-500/80" />
@@ -212,7 +363,6 @@ export default function HomeHero() {
             <div className="w-12" />
           </div>
 
-          {/* Typing Code Content */}
           <div className="p-6 font-mono text-xs sm:text-sm text-indigo-300 leading-relaxed overflow-x-auto min-h-[200px]">
             <pre>
               <code>{isMounted ? displayedCode : ""}</code>
@@ -220,7 +370,6 @@ export default function HomeHero() {
             </pre>
           </div>
 
-          {/* Code Footer Badge Row */}
           <div className="px-6 py-3 bg-slate-950/40 border-t border-slate-800/80 flex flex-wrap gap-4 text-xs font-mono text-slate-400">
             <span className="flex items-center gap-1.5 text-indigo-400">
               <Code2 className="w-3.5 h-3.5" /> Next.js 14

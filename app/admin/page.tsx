@@ -6,6 +6,7 @@ import { sendNotification } from "@/lib/sendNotification";
 import {
   defaultAboutSection,
   defaultContactSection,
+  defaultHeroSection,
   defaultProjectsSection,
   defaultSkillsSection,
 } from "@/lib/pageSectionDefaults";
@@ -40,6 +41,7 @@ const sectionOptions = [
   { value: "skills", label: "Skills" },
   { value: "projects", label: "Projects" },
   { value: "contact", label: "Contact" },
+  { value: "hero", label: "Hero" },
 ];
 
 function getDefaultSectionPayload(section: string) {
@@ -52,6 +54,8 @@ function getDefaultSectionPayload(section: string) {
       return defaultProjectsSection;
     case "contact":
       return defaultContactSection;
+    case "hero":
+      return defaultHeroSection;
     default:
       return {};
   }
@@ -686,6 +690,11 @@ export default function AdminPage() {
           { label: "Heading", path: ["heading"] },
           { label: "Subheading", path: ["subheading"], multiline: true },
           { label: "Location", path: ["location"] },
+        ];
+      case "hero":
+        return [
+          { label: "Status", path: ["status"] },
+          { label: "Visitor Count", path: ["visitorCount"] },
         ];
       default:
         return [];

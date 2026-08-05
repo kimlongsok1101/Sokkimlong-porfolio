@@ -1,11 +1,7 @@
 // next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // If your project uses ESLint during builds, this might speed up builds:
-  // eslint: { ignoreDuringBuilds: true },
-
   images: {
-    // remotePatterns is the secure, modern way to configure this
     remotePatterns: [
       {
         protocol: 'https',
@@ -19,12 +15,24 @@ const nextConfig = {
         port: '',
         pathname: '/storage/v1/object/public/projects/**',
       },
-      // IMPORTANT: Also allow localhost if you serve these locally during development
       {
         protocol: 'http',
         hostname: 'localhost',
-        port: '3000', // Update if you use a different port locally
+        port: '3000',
         pathname: '/projects/**',
+      },
+      // --- ADDED FOR DISCORD & SPOTIFY LANYARD IMAGES ---
+      {
+        protocol: 'https',
+        hostname: 'cdn.discordapp.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media.discordapp.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.scdn.co',
       },
     ],
   },
