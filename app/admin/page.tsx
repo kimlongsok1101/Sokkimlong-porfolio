@@ -129,24 +129,9 @@ export default function AdminPage() {
   const [adminPanelTab, setAdminPanelTab] = useState<AdminPanelTab>("editor");
   const [loginHistory, setLoginHistory] = useState<LoginHistoryRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [deletingHistoryId, setDeletingHistoryId] = useState<string | null>(null);
 
-  const getDeviceLocation = async () => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      return null;
-    }
-
-    return new Promise<string | null>((resolve) => {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          resolve(`${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)}`);
-        },
-        () => resolve(null),
-        { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
-      );
-    });
-  };
-
-  const selectedImage = imageFiles.find((image) => image.url === projectForm.image) ?? null;
+    const selectedImage = imageFiles.find((image) => image.url === projectForm.image) ?? null;
 
   const projectCategoryOptions: ProjectCategoryFilter[] = ["All", ...PROJECT_CATEGORIES];
 
@@ -335,6 +320,33 @@ export default function AdminPage() {
     }
 
     setHistoryLoading(false);
+  };
+
+  const deleteLoginHistoryRecord = async (id: string) => {
+    if (!id) return;
+
+    setDeletingHistoryId(id);
+    setFeedback(null);
+
+    try {
+      const response = await fetch("/api/admin/login-history", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        setFeedback(result.error ?? "Unable to delete login history record.");
+      } else {
+        setLoginHistory((current) => current.filter((record) => record.id !== id));
+        setFeedback("Login history record deleted.");
+      }
+    } catch {
+      setFeedback("Unable to delete login history record.");
+    } finally {
+      setDeletingHistoryId(null);
+    }
   };
 
   const loadSections = async () => {
@@ -529,8 +541,6 @@ export default function AdminPage() {
     setLoading(true);
     setFeedback(null);
 
-    const deviceLocation = await getDeviceLocation();
-
     try {
       const response = await fetch("/api/admin/login", {
         method: "POST",
@@ -538,7 +548,6 @@ export default function AdminPage() {
         body: JSON.stringify({
           email: form.email,
           password: form.password,
-          deviceLocation: deviceLocation || undefined,
           captchaAnswer: captchaAnswer || undefined,
           captchaToken: captchaToken || undefined,
         }),
@@ -1205,6 +1214,16 @@ export default function AdminPage() {
                         <div>
                           <p className="text-sm text-slate-400">Status</p>
                           <p className="text-slate-100 text-sm font-semibold">{record.status}</p>
+                        </div>
+                        <div className="flex items-end justify-end">
+                          <button
+                            type="button"
+                            onClick={() => deleteLoginHistoryRecord(record.id)}
+                            disabled={deletingHistoryId === record.id}
+                            className="rounded-2xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {deletingHistoryId === record.id ? "Deleting..." : "Delete"}
+                          </button>
                         </div>
                         <div>
                           <p className="text-sm text-slate-400">Date / time</p>

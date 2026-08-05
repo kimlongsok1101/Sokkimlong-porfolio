@@ -26,6 +26,7 @@ export default function AdminHistoryPage() {
   const [history, setHistory] = useState<LoginHistoryRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const isAdmin = sessionEmail?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
@@ -79,6 +80,33 @@ export default function AdminHistoryPage() {
     }
 
     setLoading(false);
+  };
+
+  const deleteHistoryRecord = async (id: string) => {
+    if (!id) return;
+
+    setDeletingId(id);
+    setFeedback(null);
+
+    try {
+      const response = await fetch("/api/admin/login-history", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        setFeedback(result.error ?? "Unable to delete login history record.");
+      } else {
+        setHistory((current) => current.filter((record) => record.id !== id));
+        setFeedback("Login history record deleted.");
+      }
+    } catch {
+      setFeedback("Unable to delete login history record.");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   useEffect(() => {
@@ -189,11 +217,21 @@ export default function AdminHistoryPage() {
                       <p className="text-sm text-slate-400">Status</p>
                       <p className="text-slate-100 font-semibold">{record.status}</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-slate-400">Date / time</p>
-                      <p className="text-slate-100 font-semibold">
-                        {record.created_at ? new Date(record.created_at).toLocaleString() : "Unknown"}
-                      </p>
+                    <div className="flex flex-col justify-between gap-4">
+                      <div>
+                        <p className="text-sm text-slate-400">Date / time</p>
+                        <p className="text-slate-100 font-semibold">
+                          {record.created_at ? new Date(record.created_at).toLocaleString() : "Unknown"}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => deleteHistoryRecord(record.id)}
+                        disabled={deletingId === record.id}
+                        className="rounded-2xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {deletingId === record.id ? "Deleting..." : "Delete"}
+                      </button>
                     </div>
                   </div>
                 </div>

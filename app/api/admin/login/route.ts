@@ -39,6 +39,25 @@ function getDeviceModel(request: NextRequest) {
   return parsed || cleaned;
 }
 
+function getDeviceLocationFromIp(ip: string) {
+  if (!ip || ip === "unknown") {
+    return "Unknown location";
+  }
+
+  if (/^127\.|^::1$/.test(ip) || ip === "localhost") {
+    return "Localhost";
+  }
+
+  const parts = ip.split(".");
+  if (parts.length === 4 && /^\d+$/.test(parts.join(""))) {
+    if (parts[0] === "10" || parts[0] === "172" || parts[0] === "192") {
+      return "Private network";
+    }
+  }
+
+  return ip;
+}
+
 function parseDeviceName(userAgent: string) {
   const ua = userAgent.toLowerCase();
 
@@ -234,7 +253,6 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const password = typeof body.password === "string" ? body.password : "";
-  const deviceLocation = typeof body.deviceLocation === "string" ? body.deviceLocation : null;
   const captchaAnswer = typeof body.captchaAnswer === "string" ? Number(body.captchaAnswer) : body.captchaAnswer;
   const captchaToken = typeof body.captchaToken === "string" ? body.captchaToken : "";
   const adminEmail = (process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "").trim().toLowerCase();
@@ -248,6 +266,8 @@ export async function POST(request: NextRequest) {
   }
 
   const deviceModel = getDeviceModel(request);
+  const clientIp = getClientIp(request);
+  const deviceLocation = getDeviceLocationFromIp(clientIp);
   const baseAuditDetails = { deviceModel, deviceLocation };
   const localRateLimit = checkRateLimit(rateLimitKey);
   if (!localRateLimit.allowed) {
