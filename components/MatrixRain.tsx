@@ -62,6 +62,11 @@ export default function MatrixRain() {
     let lastFrameTime = 0;
 
     const draw = (timestamp: number) => {
+      if (document.hidden) {
+        animationFrameId = window.requestAnimationFrame(draw);
+        return;
+      }
+
       if (timestamp - lastFrameTime < 50) {
         animationFrameId = window.requestAnimationFrame(draw);
         return;

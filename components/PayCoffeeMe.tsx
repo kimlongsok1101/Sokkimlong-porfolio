@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Coffee, X } from "lucide-react";
 
@@ -63,11 +64,16 @@ export default function PayCoffeeMe() {
               </div>
 
               <div className="bg-slate-950 p-6 text-center">
-                <img
-                  src="/qr.jpg"
-                  alt="Bank QR code"
-                  className="mx-auto max-h-[32rem] w-full max-w-md rounded-3xl object-contain"
-                />
+                <div className="mx-auto max-h-[32rem] w-full max-w-md overflow-hidden rounded-3xl">
+                  <Image
+                    src="/qr.jpg"
+                    alt="Bank QR code"
+                    width={900}
+                    height={900}
+                    loading="lazy"
+                    className="w-full h-auto object-contain"
+                  />
+                </div>
                 <p className="mt-5 text-sm text-slate-400">
                   Scan the QR code from your bank app to send support. Replace <code className="rounded bg-slate-800 px-1 py-0.5 text-amber-200">And</code> Thank you for Buy me a coffee! ☕
                 </p>

@@ -22,6 +22,59 @@ export async function GET() {
   return NextResponse.json({ data });
 }
 
+const blockedWords = [
+  "fuck",
+  "shit",
+  "bitch",
+  "asshole",
+  "bastard",
+  "cunt",
+  "nigger",
+  "nigga",
+  "faggot",
+  "slut",
+  "whore",
+  "dick",
+  "penis",
+  "pussy",
+  "porn",
+  "pornhub",
+  "porno",
+  "xxx",
+  "sex",
+  "adult",
+  "18+",
+  "18 plus",
+  "nsfw",
+  "motherfucker",
+  "fucking",
+  "fucker",
+  "douche",
+  "crap",
+  "tits",
+  "boobs",
+  "cum",
+  "anal",
+  "gayporn",
+  "hardcore",
+  "orgy",
+  "suck",
+  "sucked",
+  "blowjob",
+];
+
+const containsBlockedWord = (text: string) => {
+  const normalized = text.toLowerCase();
+  return blockedWords.some((word) => {
+    const escapedWord = word.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+    return new RegExp(`\\b${escapedWord}\\b`, "i").test(normalized);
+  });
+};
+
+const containsBlockedLink = (text: string) => {
+  return /(https?:\/\/|www\.|<\s*a\b|mailto:|\.[a-z]{2,}\b)(\/|$|\s)/i.test(text);
+};
+
 async function sendTelegramAlert(name: string, email: string, content: string) {
   const botToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
   const chatTarget = [
@@ -42,11 +95,11 @@ async function sendTelegramAlert(name: string, email: string, content: string) {
   const normalizeText = (value: string) => value.replace(/\r?\n/g, " ").replace(/\s+/g, " ").trim();
 
   const text = [
-    "📨 New portfolio contact message",
-    `👤 Name: ${normalizeText(name)}`,
-    `📧 Email: ${normalizeText(email)}`,
+    "New portfolio contact message",
+    `Name: ${normalizeText(name)}`,
+    `Email: ${normalizeText(email)}`,
     "",
-    `💬 Message:\n${normalizeText(content)}`,
+    `Message:\n${normalizeText(content)}`,
   ].join("\n");
 
   const payload: Record<string, unknown> = {
@@ -87,6 +140,17 @@ export async function POST(request: Request) {
 
   if (!name || !email || !content) {
     return NextResponse.json({ error: "Missing required fields: name, email, content." }, { status: 400 });
+  }
+
+  if (containsBlockedWord(name) || containsBlockedWord(content)) {
+    return NextResponse.json(
+      { error: "Messages cannot contain offensive language." },
+      { status: 400 },
+    );
+  }
+
+  if (containsBlockedLink(content)) {
+    return NextResponse.json({ error: "Messages cannot contain links." }, { status: 400 });
   }
 
   const { data, error } = await supabase

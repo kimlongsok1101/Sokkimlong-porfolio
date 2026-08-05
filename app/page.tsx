@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import HomeHero from "@/components/HomeHero";
 import About from "@/components/About";
@@ -6,7 +7,7 @@ import Projects from "@/components/Projects";
 import PayCoffeeMe from "@/components/PayCoffeeMe";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
-import MatrixRain from "@/components/MatrixRain"; // Or ParticleGrid
+import MatrixRain from "@/components/MatrixRain";
 
 export default function Home() {
   return (

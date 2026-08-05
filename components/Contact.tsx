@@ -41,14 +41,94 @@ export default function Contact() {
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [popup, setPopup] = useState({ visible: false, message: "" });
 
+  const blockedWords = [
+    "racist",
+    "nude",
+    "juii",
+    "juiiknea",
+    "ahjmr",
+    "fuck",
+    "shit",
+    "bitch",
+    "asshole",
+    "bastard",
+    "cunt",
+    "nigger",
+    "nigga",
+    "faggot",
+    "slut",
+    "whore",
+    "dick",
+    "penis",
+    "pussy",
+    "porn",
+    "pornhub",
+    "porno",
+    "xxx",
+    "sex",
+    "adult",
+    "18+",
+    "18 plus",
+    "nsfw",
+    "motherfucker",
+    "fucking",
+    "fucker",
+    "douche",
+    "crap",
+    "tits",
+    "boobs",
+    "cum",
+    "anal",
+    "gayporn",
+    "hardcore",
+    "orgy",
+    "suck",
+    "sucked",
+    "blowjob",
+  ];
 
+  const containsBlockedWord = (text: string) => {
+    const normalized = text.toLowerCase();
+    return blockedWords.some((word) =>
+      new RegExp(`\\b${word.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&") }\\b`, "i").test(normalized),
+    );
+  };
+
+  const containsBlockedLink = (text: string) => {
+    return /(https?:\/\/|www\.|<\s*a\b|mailto:|\.[a-z]{2,}\b)(\/|$|\s)/i.test(text);
+  };
+
+  const showPopupAlert = (message: string) => {
+    setPopup({ visible: true, message });
+    setFeedback({ type: "error", message });
+  };
+
+  const closePopupAlert = () => {
+    setPopup({ visible: false, message: "" });
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
       setFeedback({ type: "error", message: "Please fill in your name, email, and message." });
+      return;
+    }
+
+    if (containsBlockedWord(formData.name.trim())) {
+      showPopupAlert("Please remove offensive language from your name.");
+      return;
+    }
+
+    if (containsBlockedLink(formData.message.trim())) {
+      showPopupAlert("Please remove links from your message before sending.");
+      return;
+    }
+
+    if (containsBlockedWord(formData.message.trim())) {
+      showPopupAlert("Please remove offensive language from your message before sending.");
       return;
     }
 
@@ -69,7 +149,9 @@ export default function Contact() {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(result.error || "Unable to send your message right now.");
+        const errorMessage = result.error || "Unable to send your message right now.";
+        showPopupAlert(errorMessage);
+        throw new Error(errorMessage);
       }
 
       setFeedback({ type: "success", message: "Your message has been sent. I’ll get back to you soon." });
@@ -141,6 +223,26 @@ export default function Contact() {
 
   return (
     <section id="contact" className="py-24 px-6 max-w-5xl mx-auto relative overflow-hidden">
+      {popup.visible ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 px-4 py-6 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[32px] border border-slate-800 bg-slate-900 p-6 shadow-[0_25px_80px_rgba(15,23,42,0.5)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-pink-400">Submission blocked</p>
+                <h3 className="mt-3 text-xl font-semibold text-slate-100">Please fix your message</h3>
+                <p className="mt-4 text-sm leading-6 text-slate-300">{popup.message}</p>
+              </div>
+              <button
+                type="button"
+                onClick={closePopupAlert}
+                className="rounded-full border border-slate-700 bg-slate-950 px-3.5 py-2 text-sm font-semibold text-slate-100 transition hover:bg-slate-800"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {/* Background Glow */}
       <motion.div
         animate={{
