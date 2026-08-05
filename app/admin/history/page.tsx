@@ -15,9 +15,15 @@ type LoginHistoryRecord = {
   created_at: string | null;
 };
 
-const getMapsUrl = (location: string) => {
+const getMapsUrl = (location: string | null | undefined) => {
   if (!location) return null;
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+  const trimmed = String(location).trim();
+  // If looks like "lat,lng" where lat/lng are numbers, use as-is
+  if (/^-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?$/.test(trimmed)) {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
+  }
+  // Otherwise treat as address/place and let Google Maps handle it
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
 };
 
 export default function AdminHistoryPage() {
@@ -196,11 +202,11 @@ export default function AdminHistoryPage() {
                     <div>
                       <p className="text-sm text-slate-400">Device location</p>
                       <p className="text-slate-100 font-semibold">
-                        {record.deviceLocation || record.ip || "Unknown location"}
+                        {record.deviceLocation || "Unknown location"}
                       </p>
-                      {getMapsUrl(record.deviceLocation || record.ip || "") ? (
+                      {getMapsUrl(record.deviceLocation) ? (
                         <a
-                          href={getMapsUrl(record.deviceLocation || record.ip || "")!}
+                          href={getMapsUrl(record.deviceLocation)!}
                           target="_blank"
                           rel="noreferrer noopener"
                           className="text-indigo-300 text-sm hover:text-indigo-200"

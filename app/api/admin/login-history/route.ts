@@ -33,10 +33,29 @@ export async function GET() {
       record.details && typeof record.details === "object" && "deviceModel" in record.details
         ? String((record.details as Record<string, unknown>).deviceModel)
         : "Unknown device",
-    deviceLocation:
-      record.details && typeof record.details === "object" && "deviceLocation" in record.details
-        ? String((record.details as Record<string, unknown>).deviceLocation)
-        : record.ip ?? "Unknown location",
+    deviceLocation: (() => {
+      const details = record.details && typeof record.details === "object" ? (record.details as Record<string, any>) : null;
+      if (details && "deviceLocation" in details) {
+        const dl = details.deviceLocation;
+        // If the deviceLocation is already a string (e.g., "123 Main St" or "lat,lng"), return it directly
+        if (typeof dl === "string") return dl;
+        // If it's an object with lat/lng or latitude/longitude fields, format as "lat,lng"
+        if (dl && typeof dl === "object") {
+          const lat = dl.lat ?? dl.latitude ?? dl.latitude_deg ?? dl.lat_deg;
+          const lng = dl.lng ?? dl.longitude ?? dl.longitude_deg ?? dl.lng_deg;
+          if ((lat !== undefined && lat !== null) && (lng !== undefined && lng !== null)) {
+            return `${lat},${lng}`;
+          }
+        }
+        // Fallback to JSON string if possible
+        try {
+          return JSON.stringify(dl);
+        } catch {
+          return String(dl);
+        }
+      }
+      return "Unknown location";
+    })(),
     created_at: record.created_at,
   }));
 
