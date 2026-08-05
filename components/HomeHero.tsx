@@ -128,17 +128,21 @@ export default function HomeHero() {
             imageUrl = `https://i.scdn.co/image/${largeImage.replace("spotify:", "")}`;
           } else if (largeImage.startsWith("mp:external/")) {
             imageUrl = `https://media.discordapp.net/external/${largeImage.replace("mp:external/", "")}`;
+          } else if (largeImage.startsWith("https://") || largeImage.startsWith("http://")) {
+            imageUrl = largeImage;
           } else if (act.application_id) {
             imageUrl = `https://cdn.discordapp.com/app-assets/${act.application_id}/${largeImage}.png`;
           }
         }
 
         let smallImageUrl = null;
-        if (act.assets?.small_image && act.application_id) {
+        if (act.assets?.small_image) {
           const smallImage = act.assets.small_image;
           if (smallImage.startsWith("mp:external/")) {
             smallImageUrl = `https://media.discordapp.net/external/${smallImage.replace("mp:external/", "")}`;
-          } else {
+          } else if (smallImage.startsWith("https://") || smallImage.startsWith("http://")) {
+            smallImageUrl = smallImage;
+          } else if (act.application_id) {
             smallImageUrl = `https://cdn.discordapp.com/app-assets/${act.application_id}/${smallImage}.png`;
           }
         }
