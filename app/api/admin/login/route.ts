@@ -65,40 +65,7 @@ function parseDeviceName(userAgent: string) {
     return "iPhone";
   }
 
-  if (/ipad/.test(ua)) {
-    return "iPad";
-  }
-
-  if (/ipod/.test(ua)) {
-    return "iPod";
-  }
-
-  if (/android/.test(ua)) {
-    const androidMatch = userAgent.match(/Android [\d.]+;?\s*([^;\)]+)(?:;|\))/i);
-    if (androidMatch && androidMatch[1]) {
-      return androidMatch[1].trim();
-    }
-    return "Android device";
-  }
-
-  if (/windows nt/.test(ua)) {
-    return "Windows desktop";
-  }
-
-  if (/macintosh/.test(ua) || /mac os x/.test(ua)) {
-    return "Mac desktop";
-  }
-
-  if (/linux/.test(ua)) {
-    return "Linux desktop";
-  }
-
-  const browserMatch = userAgent.match(/(Chrome|Firefox|Safari|Edge|Opera|MSIE|Trident)/i);
-  if (browserMatch && browserMatch[1]) {
-    return `${browserMatch[1]} browser`;
-  }
-
-  return null;
+  return "Desktop";
 }
 
 function getRateLimitKey(email: string, ip: string) {
@@ -265,9 +232,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Admin email is not configured." }, { status: 500 });
   }
 
-  const deviceModel = getDeviceModel(request);
+  const details = typeof body.details === "object" && body.details !== null ? body.details : {};
+  const clientDeviceModel = typeof details.deviceModel === "string" ? details.deviceModel : null;
+  const clientDeviceLocation = typeof details.deviceLocation === "string" ? details.deviceLocation : null;
+  const deviceModel = clientDeviceModel ?? getDeviceModel(request);
   const clientIp = getClientIp(request);
-  const deviceLocation = getDeviceLocationFromIp(clientIp);
+  const deviceLocation = clientDeviceLocation ?? getDeviceLocationFromIp(clientIp);
   const baseAuditDetails = { deviceModel, deviceLocation };
   const localRateLimit = checkRateLimit(rateLimitKey);
   if (!localRateLimit.allowed) {

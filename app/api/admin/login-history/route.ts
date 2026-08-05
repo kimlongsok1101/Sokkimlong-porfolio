@@ -3,6 +3,14 @@ import { createSupabaseAdminClient } from "@/lib/supabaseAdminClient";
 
 const LOGIN_RELEVANT_STATUSES = new Set(["success", "failed", "failure", "fail", "error"]);
 
+function getSimpleDeviceModel(value: unknown) {
+  if (typeof value === "string") {
+    return /iphone/i.test(value) ? "iPhone" : "Desktop";
+  }
+
+  return "Desktop";
+}
+
 function getClientIp(request: NextRequest) {
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) {
@@ -47,8 +55,8 @@ export async function GET() {
     status: record.status,
     deviceModel:
       record.details && typeof record.details === "object" && "deviceModel" in record.details
-        ? String((record.details as Record<string, unknown>).deviceModel)
-        : "Unknown device",
+        ? getSimpleDeviceModel((record.details as Record<string, unknown>).deviceModel)
+        : "Desktop",
     deviceLocation: (() => {
       const details = record.details && typeof record.details === "object" ? (record.details as Record<string, unknown>) : null;
       if (details && "deviceLocation" in details) {

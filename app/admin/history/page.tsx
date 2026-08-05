@@ -18,12 +18,15 @@ type LoginHistoryRecord = {
 const getMapsUrl = (location: string | null | undefined) => {
   if (!location) return null;
   const trimmed = String(location).trim();
-  // If looks like "lat,lng" where lat/lng are numbers, use as-is
   if (/^-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?$/.test(trimmed)) {
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
   }
-  // Otherwise treat as address/place and let Google Maps handle it
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
+};
+
+const getSimpleDeviceModel = (userAgent: string | null | undefined) => {
+  if (!userAgent) return "Desktop";
+  return /iphone/i.test(userAgent) ? "iPhone" : "Desktop";
 };
 
 export default function AdminHistoryPage() {
@@ -77,7 +80,7 @@ export default function AdminHistoryPage() {
               }
             };
 
-            const deviceModel = navigator?.userAgent ?? "Unknown device";
+            const deviceModel = getSimpleDeviceModel(navigator?.userAgent);
 
             if (typeof navigator !== "undefined" && navigator.geolocation) {
               navigator.geolocation.getCurrentPosition(
@@ -247,18 +250,16 @@ export default function AdminHistoryPage() {
                 <div key={record.id} className="rounded-3xl border border-slate-800/80 bg-slate-950/80 p-5">
                   <div className="grid gap-4 sm:grid-cols-4">
                     <div>
-                      <p className="text-xs text-slate-400">Connection location</p>
-                      <p className="mt-1 text-slate-300 font-extrabold text-lg">
-                        {record.deviceLocation || "Unknown location"}
-                      </p>
+                      <p className="text-xs text-slate-400">Connection IP</p>
+                      <p className="mt-1 text-slate-300 font-extrabold text-lg">{record.ip || "Unknown IP"}</p>
                       {getMapsUrl(record.deviceLocation) ? (
                         <a
                           href={getMapsUrl(record.deviceLocation)!}
                           target="_blank"
                           rel="noreferrer noopener"
-                          className="text-indigo-300 text-sm hover:text-indigo-200"
+                          className="mt-2 inline-flex text-indigo-300 text-sm hover:text-indigo-200"
                         >
-                          View on Google Maps
+                          Open Google Maps
                         </a>
                       ) : null}
                     </div>

@@ -63,9 +63,34 @@ type LoginHistoryRecord = {
   created_at: string | null;
 };
 
-const getMapsUrl = (location: string) => {
+const getMapsUrl = (location: string | null | undefined) => {
   if (!location) return null;
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+  const trimmed = String(location).trim();
+  if (/^-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?$/.test(trimmed)) {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
+  }
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
+};
+
+const getSimpleDeviceModel = (userAgent: string | null | undefined) => {
+  if (!userAgent) return "Desktop";
+  return /iphone/i.test(userAgent) ? "iPhone" : "Desktop";
+};
+
+const getBrowserLoginDetails = async () => {
+  const deviceModel = getSimpleDeviceModel(typeof navigator !== "undefined" ? navigator.userAgent : null);
+
+  if (typeof navigator === "undefined" || !navigator.geolocation) {
+    return { deviceModel };
+  }
+
+  return await new Promise<{ deviceModel: string; deviceLocation?: string }>((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ deviceModel, deviceLocation: `${pos.coords.latitude},${pos.coords.longitude}` }),
+      () => resolve({ deviceModel }),
+      { timeout: 5000 }
+    );
+  });
 };
 
 function getDefaultSectionPayload(section: string) {
@@ -542,6 +567,7 @@ export default function AdminPage() {
     setFeedback(null);
 
     try {
+      const browserLoginDetails = await getBrowserLoginDetails();
       const response = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -550,6 +576,7 @@ export default function AdminPage() {
           password: form.password,
           captchaAnswer: captchaAnswer || undefined,
           captchaToken: captchaToken || undefined,
+          details: browserLoginDetails,
         }),
       });
 
@@ -1192,18 +1219,16 @@ export default function AdminPage() {
                     <div key={record.id} className="rounded-3xl border border-slate-800/80 bg-slate-950/80 p-4">
                       <div className="grid gap-4 sm:grid-cols-4">
                         <div>
-                          <p className="text-sm text-slate-400">Device location</p>
-                          <p className="text-slate-100 text-sm font-semibold">
-                            {record.deviceLocation || record.ip || "Unknown location"}
-                          </p>
-                          {getMapsUrl(record.deviceLocation || record.ip || "") ? (
+                          <p className="text-sm text-slate-400">Connection IP</p>
+                          <p className="text-slate-100 text-sm font-semibold">{record.ip || "Unknown IP"}</p>
+                          {getMapsUrl(record.deviceLocation) ? (
                             <a
-                              href={getMapsUrl(record.deviceLocation || record.ip || "")!}
+                              href={getMapsUrl(record.deviceLocation)!}
                               target="_blank"
                               rel="noreferrer noopener"
-                              className="text-indigo-300 text-sm hover:text-indigo-200"
+                              className="mt-2 inline-flex text-indigo-300 text-sm hover:text-indigo-200"
                             >
-                              View on Google Maps
+                              Open Google Maps
                             </a>
                           ) : null}
                         </div>
