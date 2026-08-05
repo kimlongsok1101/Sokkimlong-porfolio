@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import NextImage from "next/image";
 import { motion } from "framer-motion";
 import { ArrowDown, Sparkles, Terminal, Code2, Database, Users, Music, Gamepad2 } from "lucide-react";
 import { useEffect, useState, type MouseEvent } from "react";
@@ -74,7 +74,6 @@ export default function HomeHero() {
     if (!discordData) return [];
     const cards = [];
 
-    // 1. Add Spotify nicely if active
     if (discordData.listening_to_spotify && discordData.spotify) {
       const { start, end } = discordData.spotify.timestamps;
       const duration = end - start;
@@ -96,7 +95,6 @@ export default function HomeHero() {
       });
     }
 
-    // 2. Add other apps/games from activities list (Filtering out custom status type 4 and duplicate "Spotify" activity entry)
     if (discordData.activities && discordData.activities.length > 0) {
       discordData.activities.forEach((act: LanyardActivity, index: number) => {
         if (act.type === 4 || act.name.toLowerCase() === "spotify") return;
@@ -232,7 +230,7 @@ export default function HomeHero() {
 
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-10 items-center z-10">
         
-        {/* LEFT COLUMN: ID Card + Activities Stacked Below */}
+        {/* LEFT COLUMN: ID Card + Real-time Current Activity Container */}
         <div className="lg:col-span-5 flex flex-col gap-4 items-center w-full">
           <motion.div
             initial={{ y: -300, opacity: 0, rotate: -6 }}
@@ -247,7 +245,7 @@ export default function HomeHero() {
               
               {/* Profile Avatar Frame */}
               <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-indigo-500/30 p-1 mb-4 bg-slate-950">
-                <Image
+                <NextImage
                   src="/profile.jpg"
                   alt="Sokkimlong Profile Picture"
                   fill
@@ -302,19 +300,39 @@ export default function HomeHero() {
             </div>
           </motion.div>
 
-          {/* BELOW ID CARD: Stacked Multiple Activity / App Widget Cards */}
+          {/* CURRENT ACTIVITY BOX CONTAINER WITH ANIMATION */}
           {activityCards.length > 0 && (
-            <div className="w-full max-w-sm flex flex-col gap-3">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="w-full max-w-sm bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl p-4 rounded-3xl shadow-2xl relative overflow-hidden flex flex-col gap-3"
+            >
+              <div className="flex items-center justify-between px-1 pt-1 pb-1">
+                <div className="flex items-center gap-2">
+                  <span className="relative flex w-2.5 h-2.5">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                    <span className="relative inline-flex rounded-full w-2.5 h-2.5 bg-emerald-500" />
+                  </span>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                    Current Activity
+                  </h3>
+                </div>
+              </div>
+
               {activityCards.map((card) => (
-                <div key={card.key} className="w-full bg-slate-900/90 border border-slate-800 backdrop-blur-xl p-4 rounded-2xl text-left relative overflow-hidden shadow-xl">
+                <div 
+                  key={card.key} 
+                  className="w-full bg-slate-950/70 border border-slate-800/80 p-3.5 rounded-2xl text-left relative overflow-hidden shadow-lg transition-all duration-300 hover:border-indigo-500/30"
+                >
                   <span className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
                     {card.title}
                   </span>
                   
                   <div className="flex items-center gap-3">
                     {card.image ? (
-                      <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-slate-950 border border-slate-800">
-                        <Image
+                      <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-slate-900 border border-slate-800">
+                        <NextImage
                           src={card.image}
                           alt="Thumbnail"
                           fill
@@ -323,7 +341,7 @@ export default function HomeHero() {
                         />
                         {card.smallImage && (
                           <div className="absolute bottom-0 right-0 w-5 h-5 rounded-full overflow-hidden border border-slate-900 bg-slate-950">
-                            <Image src={card.smallImage} alt="Badge" fill sizes="20px" className="object-cover" />
+                            <NextImage src={card.smallImage} alt="Badge" fill sizes="20px" className="object-cover" />
                           </div>
                         )}
                       </div>
@@ -365,7 +383,7 @@ export default function HomeHero() {
                   ) : null}
                 </div>
               ))}
-            </div>
+            </motion.div>
           )}
         </div>
 
