@@ -18,8 +18,13 @@ const codeSnippet = `const developer = {
 
 function formatTime(ms: number) {
   const totalSeconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
@@ -41,6 +46,13 @@ export default function HomeHero() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Force sync currentTime when discordData updates or on initial load/re-open
+  useEffect(() => {
+    if (discordData?.spotify?.timestamps || discordData?.activities) {
+      setCurrentTime(Date.now());
+    }
+  }, [discordData]);
 
   const getStatusConfig = () => {
     const rawStatus = discordData?.discord_status || "offline";
@@ -76,9 +88,12 @@ export default function HomeHero() {
 
     if (discordData.listening_to_spotify && discordData.spotify) {
       const { start, end } = discordData.spotify.timestamps;
-      const duration = end - start;
-      const elapsed = Math.min(Math.max(currentTime - start, 0), duration);
-      const progressPercent = Math.min((elapsed / duration) * 100, 100);
+      const startMs = start < 10000000000 ? start * 1000 : start;
+      const endMs = end < 10000000000 ? end * 1000 : end;
+
+      const duration = endMs - startMs;
+      const elapsed = Math.min(Math.max(currentTime - startMs, 0), duration);
+      const progressPercent = duration > 0 ? Math.min((elapsed / duration) * 100, 100) : 0;
 
       cards.push({
         key: "spotify",
@@ -123,7 +138,8 @@ export default function HomeHero() {
 
         let elapsedFormatted = null;
         if (act.timestamps?.start) {
-          const elapsed = Math.max(currentTime - act.timestamps.start, 0);
+          const startMs = act.timestamps.start < 10000000000 ? act.timestamps.start * 1000 : act.timestamps.start;
+          const elapsed = Math.max(currentTime - startMs, 0);
           elapsedFormatted = formatTime(elapsed);
         }
 

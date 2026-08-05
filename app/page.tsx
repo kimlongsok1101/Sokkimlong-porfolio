@@ -8,6 +8,10 @@ import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import MatrixRainWrapper from "@/components/MatrixRainWrapper";
 
+// Force Next.js to treat this page as dynamic so updates and WebSockets flow instantly without caching
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default function Home() {
   return (
     <main className="bg-slate-950 text-slate-100 min-h-screen relative overflow-x-hidden">
