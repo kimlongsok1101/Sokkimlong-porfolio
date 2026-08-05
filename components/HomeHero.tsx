@@ -2,7 +2,7 @@
 
 import NextImage from "next/image";
 import { motion } from "framer-motion";
-import { ArrowDown, Sparkles, Terminal, Code2, Database, Users, Music, Gamepad2 } from "lucide-react";
+import { ArrowDown, Sparkles, Terminal, Code2, Database, Users, Music, Gamepad2, ExternalLink } from "lucide-react";
 import { useEffect, useState, type MouseEvent, useRef } from "react";
 import { usePageSection } from "@/lib/usePageSection";
 import { defaultHeroSection } from "@/lib/pageSectionDefaults";
@@ -87,6 +87,7 @@ export default function HomeHero() {
     progress?: number;
     elapsedFormatted?: string | null;
     durationFormatted?: string;
+    trackId?: string;
   }> => {
     if (!discordData) return [];
     const cards = [];
@@ -112,6 +113,7 @@ export default function HomeHero() {
         progress: progressPercent,
         elapsedFormatted: formatTime(elapsed),
         durationFormatted: formatTime(duration),
+        trackId: discordData.spotify.track_id,
       });
     }
 
@@ -389,12 +391,26 @@ export default function HomeHero() {
                         <span>{card.elapsedFormatted}</span>
                         <span>{card.durationFormatted}</span>
                       </div>
-                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-3">
                         <div
                           className="h-full bg-emerald-400 rounded-full transition-all duration-1000 linear"
                           style={{ width: `${card.progress}%` }}
                         />
                       </div>
+                      
+                      {/* Play on Spotify Button */}
+                      {card.trackId && (
+                        <a
+                          href={`https://open.spotify.com/track/${card.trackId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 rounded-xl text-xs font-medium text-slate-200 flex items-center justify-center gap-2 transition-colors shadow-sm"
+                        >
+                          <Music className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>Play on Spotify</span>
+                          <ExternalLink className="w-3 h-3 text-slate-400 ml-auto" />
+                        </a>
+                      )}
                     </div>
                   ) : card.elapsedFormatted ? (
                     <div className="mt-2 text-[10px] font-mono text-slate-400 flex items-center gap-1.5 pt-2 border-t border-slate-800/50">
