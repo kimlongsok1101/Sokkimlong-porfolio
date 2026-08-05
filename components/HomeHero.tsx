@@ -3,7 +3,7 @@
 import NextImage from "next/image";
 import { motion } from "framer-motion";
 import { ArrowDown, Sparkles, Terminal, Code2, Database, Users, Music, Gamepad2 } from "lucide-react";
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useState, type MouseEvent, useRef } from "react";
 import { usePageSection } from "@/lib/usePageSection";
 import { defaultHeroSection } from "@/lib/pageSectionDefaults";
 import { useDiscordStatus, LanyardActivity } from "@/lib/useDiscordStatus";
@@ -39,6 +39,7 @@ export default function HomeHero() {
   const visitorCount = Number.isFinite(visitorCountValue) ? visitorCountValue : 0;
 
   const discordData = useDiscordStatus("745943593432121465");
+  const prevTrackIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -47,12 +48,16 @@ export default function HomeHero() {
     return () => clearInterval(timer);
   }, []);
 
-  // Force sync currentTime when discordData updates or on initial load/re-open
+  // Instantly re-sync currentTime when Spotify changes tracks (skip) or updates
   useEffect(() => {
-    if (discordData?.spotify?.timestamps || discordData?.activities) {
-      setCurrentTime(Date.now());
+    if (discordData?.spotify) {
+      const currentTrackId = discordData.spotify.track_id;
+      if (prevTrackIdRef.current !== currentTrackId) {
+        prevTrackIdRef.current = currentTrackId;
+        setCurrentTime(Date.now());
+      }
     }
-  }, [discordData]);
+  }, [discordData?.spotify?.track_id]);
 
   const getStatusConfig = () => {
     const rawStatus = discordData?.discord_status || "offline";
