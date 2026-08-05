@@ -44,6 +44,30 @@ const sectionOptions = [
   { value: "hero", label: "Hero" },
 ];
 
+const adminPanelTabs = [
+  { value: "editor", label: "Editor" },
+  { value: "messages", label: "Messages" },
+  { value: "projects", label: "Projects" },
+  { value: "loginHistory", label: "Login History" },
+] as const;
+
+type AdminPanelTab = (typeof adminPanelTabs)[number]["value"];
+
+type LoginHistoryRecord = {
+  id: string;
+  email: string;
+  ip: string;
+  status: string;
+  deviceModel: string;
+  deviceLocation: string;
+  created_at: string | null;
+};
+
+const getMapsUrl = (location: string) => {
+  if (!location) return null;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+};
+
 function getDefaultSectionPayload(section: string) {
   switch (section) {
     case "about":
@@ -102,6 +126,25 @@ export default function AdminPage() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaAnswer, setCaptchaAnswer] = useState("");
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [adminPanelTab, setAdminPanelTab] = useState<AdminPanelTab>("editor");
+  const [loginHistory, setLoginHistory] = useState<LoginHistoryRecord[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const getDeviceLocation = async () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      return null;
+    }
+
+    return new Promise<string | null>((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve(`${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)}`);
+        },
+        () => resolve(null),
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+      );
+    });
+  };
 
   const selectedImage = imageFiles.find((image) => image.url === projectForm.image) ?? null;
 
@@ -167,6 +210,7 @@ export default function AdminPage() {
       loadSections();
       loadProjects(projectCategory);
       loadProjectImages();
+      loadLoginHistory();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
@@ -270,6 +314,27 @@ export default function AdminPage() {
     }
 
     setLoading(false);
+  };
+
+  const loadLoginHistory = async () => {
+    setHistoryLoading(true);
+
+    try {
+      const response = await fetch("/api/admin/login-history");
+      const result = await response.json();
+
+      if (!response.ok) {
+        setFeedback(result.error ?? "Unable to load login history.");
+        setLoginHistory([]);
+      } else {
+        setLoginHistory(result.data ?? []);
+      }
+    } catch {
+      setFeedback("Unable to load login history.");
+      setLoginHistory([]);
+    }
+
+    setHistoryLoading(false);
   };
 
   const loadSections = async () => {
@@ -456,8 +521,15 @@ export default function AdminPage() {
     const now = Date.now();
     if (loading || (cooldownUntil && now < cooldownUntil)) return;
 
+    if (sessionEmail?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+      setFeedback("Already signed in as admin.");
+      return;
+    }
+
     setLoading(true);
     setFeedback(null);
+
+    const deviceLocation = await getDeviceLocation();
 
     try {
       const response = await fetch("/api/admin/login", {
@@ -466,6 +538,7 @@ export default function AdminPage() {
         body: JSON.stringify({
           email: form.email,
           password: form.password,
+          deviceLocation: deviceLocation || undefined,
           captchaAnswer: captchaAnswer || undefined,
           captchaToken: captchaToken || undefined,
         }),
@@ -494,6 +567,11 @@ export default function AdminPage() {
 
         setLoading(false);
         return;
+      }
+
+      const clientSupabase = createSupabaseClient();
+      if (clientSupabase && result.data?.session) {
+        await clientSupabase.auth.setSession(result.data.session);
       }
 
       const userEmail = result.data?.email ?? form.email;
@@ -983,6 +1061,12 @@ export default function AdminPage() {
             </div>
 
             <div className="flex flex-col gap-3 sm:items-end">
+              <a
+                href="/admin/history"
+                className="inline-flex items-center justify-center rounded-2xl bg-slate-700 px-5 py-3 text-sm font-semibold text-slate-100 transition hover:bg-slate-600"
+              >
+                View login history
+              </a>
               <button
                 type="button"
                 onClick={signOut}
@@ -1044,7 +1128,18 @@ export default function AdminPage() {
             </div>
 
             <div className="rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
-              <h2 className="text-2xl font-semibold text-slate-100 mb-4">Visitor messages</h2>
+              <div className="flex items-center justify-between mb-4 gap-3 flex-col sm:flex-row">
+                <div>
+                  <h2 className="text-2xl font-semibold text-slate-100">Visitor messages</h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={loadLoginHistory}
+                  className="rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
+                >
+                  Refresh history
+                </button>
+              </div>
               <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
                 <div className="rounded-3xl border border-slate-800/80 bg-slate-950/80 p-6">
                   <p className="text-slate-400 text-sm mb-2">Total messages</p>
@@ -1057,6 +1152,69 @@ export default function AdminPage() {
                   </p>
                 </div>
               </div>
+            </div>
+
+            <div className="rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
+              <div className="flex items-center justify-between mb-4 gap-3 flex-col sm:flex-row">
+                <div>
+                  <h2 className="text-2xl font-semibold text-slate-100">Login History</h2>
+                  <p className="text-slate-400 text-sm">Recent admin login attempts with IP and timestamp.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={loadLoginHistory}
+                  className="rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
+                >
+                  Refresh history
+                </button>
+              </div>
+
+              {historyLoading ? (
+                <div className="rounded-3xl border border-slate-800/80 bg-slate-950/80 p-6 text-slate-400">
+                  Loading login history...
+                </div>
+              ) : loginHistory.length === 0 ? (
+                <div className="rounded-3xl border border-slate-800/80 bg-slate-950/80 p-6 text-slate-400">
+                  No login history found.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {loginHistory.slice(0, 20).map((record) => (
+                    <div key={record.id} className="rounded-3xl border border-slate-800/80 bg-slate-950/80 p-4">
+                      <div className="grid gap-4 sm:grid-cols-4">
+                        <div>
+                          <p className="text-sm text-slate-400">Device location</p>
+                          <p className="text-slate-100 text-sm font-semibold">
+                            {record.deviceLocation || record.ip || "Unknown location"}
+                          </p>
+                          {getMapsUrl(record.deviceLocation || record.ip || "") ? (
+                            <a
+                              href={getMapsUrl(record.deviceLocation || record.ip || "")!}
+                              target="_blank"
+                              rel="noreferrer noopener"
+                              className="text-indigo-300 text-sm hover:text-indigo-200"
+                            >
+                              View on Google Maps
+                            </a>
+                          ) : null}
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-400">Device</p>
+                          <p className="text-slate-100 text-sm font-semibold">{record.deviceModel || "Unknown device"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-400">Status</p>
+                          <p className="text-slate-100 text-sm font-semibold">{record.status}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-400">Date / time</p>
+                          <p className="text-slate-100 text-sm font-semibold">{record.created_at ? new Date(record.created_at).toLocaleString() : "Unknown"}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">

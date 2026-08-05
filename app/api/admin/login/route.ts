@@ -31,6 +31,57 @@ function getClientIp(request: NextRequest) {
   return request.headers.get("x-real-ip") ?? "unknown";
 }
 
+function getDeviceModel(request: NextRequest) {
+  const userAgent = request.headers.get("user-agent") ?? "unknown device";
+  const cleaned = userAgent.replace(/\s+/g, " ").trim();
+
+  const parsed = parseDeviceName(cleaned);
+  return parsed || cleaned;
+}
+
+function parseDeviceName(userAgent: string) {
+  const ua = userAgent.toLowerCase();
+
+  if (/iphone/.test(ua)) {
+    return "iPhone";
+  }
+
+  if (/ipad/.test(ua)) {
+    return "iPad";
+  }
+
+  if (/ipod/.test(ua)) {
+    return "iPod";
+  }
+
+  if (/android/.test(ua)) {
+    const androidMatch = userAgent.match(/Android [\d.]+;?\s*([^;\)]+)(?:;|\))/i);
+    if (androidMatch && androidMatch[1]) {
+      return androidMatch[1].trim();
+    }
+    return "Android device";
+  }
+
+  if (/windows nt/.test(ua)) {
+    return "Windows desktop";
+  }
+
+  if (/macintosh/.test(ua) || /mac os x/.test(ua)) {
+    return "Mac desktop";
+  }
+
+  if (/linux/.test(ua)) {
+    return "Linux desktop";
+  }
+
+  const browserMatch = userAgent.match(/(Chrome|Firefox|Safari|Edge|Opera|MSIE|Trident)/i);
+  if (browserMatch && browserMatch[1]) {
+    return `${browserMatch[1]} browser`;
+  }
+
+  return null;
+}
+
 function getRateLimitKey(email: string, ip: string) {
   return `${email || "unknown"}:${ip}`;
 }
@@ -183,6 +234,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const password = typeof body.password === "string" ? body.password : "";
+  const deviceLocation = typeof body.deviceLocation === "string" ? body.deviceLocation : null;
   const captchaAnswer = typeof body.captchaAnswer === "string" ? Number(body.captchaAnswer) : body.captchaAnswer;
   const captchaToken = typeof body.captchaToken === "string" ? body.captchaToken : "";
   const adminEmail = (process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "").trim().toLowerCase();
@@ -195,10 +247,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Admin email is not configured." }, { status: 500 });
   }
 
+  const deviceModel = getDeviceModel(request);
+  const baseAuditDetails = { deviceModel, deviceLocation };
   const localRateLimit = checkRateLimit(rateLimitKey);
   if (!localRateLimit.allowed) {
     if (canPersist) {
       await logAuditAttempt(supabase, email, ip, "blocked", "local_rate_limit", {
+        ...baseAuditDetails,
         retryAfter: localRateLimit.retryAfter,
       });
     }
@@ -208,7 +263,10 @@ export async function POST(request: NextRequest) {
 
   if (!email || email !== adminEmail) {
     if (canPersist) {
-      await logAuditAttempt(supabase, email, ip, "blocked", "unauthorized_email", { attemptedEmail: email });
+      await logAuditAttempt(supabase, email, ip, "blocked", "unauthorized_email", {
+        ...baseAuditDetails,
+        attemptedEmail: email,
+      });
     }
 
     return createBlockResponse("Invalid admin login request.", DEFAULT_RETRY_AFTER, 403);
@@ -219,6 +277,7 @@ export async function POST(request: NextRequest) {
   if (blockActiveUntil && blockActiveUntil > Date.now()) {
     if (canPersist) {
       await logAuditAttempt(supabase, email, ip, "blocked", "persisted_block", {
+        ...baseAuditDetails,
         retryAfter: Math.ceil((blockActiveUntil - Date.now()) / 1000),
       });
     }
@@ -231,7 +290,10 @@ export async function POST(request: NextRequest) {
     const isValidCaptcha = captchaToken && Number.isFinite(captchaAnswer) && captchaAnswer === storedChallenge.answer;
     if (!isValidCaptcha) {
       if (canPersist) {
-        await logAuditAttempt(supabase, email, ip, "failed", "captcha_failed", { captchaToken });
+        await logAuditAttempt(supabase, email, ip, "failed", "captcha_failed", {
+          ...baseAuditDetails,
+          captchaToken,
+        });
       }
 
       return createBlockResponse("CAPTCHA verification failed.", DEFAULT_RETRY_AFTER, 401, {
@@ -258,7 +320,10 @@ export async function POST(request: NextRequest) {
       const blockUntil = new Date(Date.now() + LOCKOUT_MS);
       if (canPersist) {
         await upsertFailureRecord(supabase, email, ip, failureCount, blockUntil.toISOString(), "max_attempts_reached");
-        await logAuditAttempt(supabase, email, ip, "blocked", "max_attempts_reached", { failureCount });
+        await logAuditAttempt(supabase, email, ip, "blocked", "max_attempts_reached", {
+          ...baseAuditDetails,
+          failureCount,
+        });
       }
 
       return createBlockResponse("Too many login attempts. Please wait before trying again.", Math.ceil(LOCKOUT_MS / 1000));
@@ -268,7 +333,10 @@ export async function POST(request: NextRequest) {
       const challenge = createCaptchaChallenge(rateLimitKey);
       if (canPersist) {
         await upsertFailureRecord(supabase, email, ip, failureCount, null, "captcha_required");
-        await logAuditAttempt(supabase, email, ip, "failed", "captcha_required", { failureCount });
+        await logAuditAttempt(supabase, email, ip, "failed", "captcha_required", {
+          ...baseAuditDetails,
+          failureCount,
+        });
       }
 
       return NextResponse.json(
@@ -286,7 +354,10 @@ export async function POST(request: NextRequest) {
 
     if (canPersist) {
       await upsertFailureRecord(supabase, email, ip, failureCount, null, "failed_login");
-      await logAuditAttempt(supabase, email, ip, "failed", "failed_login", { failureCount });
+      await logAuditAttempt(supabase, email, ip, "failed", "failed_login", {
+        ...baseAuditDetails,
+        failureCount,
+      });
     }
 
     return NextResponse.json({ error: error.message, retryAfter: DEFAULT_RETRY_AFTER }, { status: 401 });
@@ -294,7 +365,10 @@ export async function POST(request: NextRequest) {
 
   if (canPersist) {
     await clearFailureRecord(supabase, email, ip);
-    await logAuditAttempt(supabase, email, ip, "success", "successful_login", { email });
+    await logAuditAttempt(supabase, email, ip, "success", "successful_login", {
+      ...baseAuditDetails,
+      email,
+    });
   }
 
   resetRateLimit(rateLimitKey);
@@ -304,6 +378,7 @@ export async function POST(request: NextRequest) {
     {
       data: {
         email: data.session?.user?.email ?? email,
+        session: data.session,
       },
     },
     { status: 200 }

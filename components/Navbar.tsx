@@ -17,6 +17,7 @@ const navLinks = [
   { name: "Projects", href: "#projects" },
   { name: "Support", href: "#support" },
   { name: "Contact", href: "#contact" },
+  { name: "Admin", href: "/admin" },
 ];
 
 export default function Navbar() {
@@ -96,6 +97,11 @@ export default function Navbar() {
     // 1. Immediately close the mobile menu and unfreeze body scrolling
     setMobileMenuOpen(false);
     document.body.style.overflow = "unset";
+
+    if (href.startsWith("/")) {
+      window.location.href = href;
+      return;
+    }
 
     const targetId = href.replace("#", "");
     const targetElement = document.getElementById(targetId);
