@@ -2,7 +2,7 @@
 
 import NextImage from "next/image";
 import { motion } from "framer-motion";
-import { ArrowDown, Sparkles, Terminal, Code2, Database, Users, Music, Gamepad2, ExternalLink } from "lucide-react";
+import { ArrowDown, Sparkles, Terminal, Code2, Database, Music, Gamepad2, ExternalLink } from "lucide-react";
 import { useEffect, useState, type MouseEvent, useRef } from "react";
 import { usePageSection } from "@/lib/usePageSection";
 import { defaultHeroSection } from "@/lib/pageSectionDefaults";
@@ -33,10 +33,6 @@ export default function HomeHero() {
   const [isMounted, setIsMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [currentTime, setCurrentTime] = useState<number>(Date.now());
-  
-  const { payload: heroPayload } = usePageSection("hero", defaultHeroSection);
-  const visitorCountValue = Number(heroPayload.visitorCount ?? defaultHeroSection.visitorCount);
-  const visitorCount = Number.isFinite(visitorCountValue) ? visitorCountValue : 0;
 
   const discordData = useDiscordStatus("745943593432121465");
   const prevTrackIdRef = useRef<string | null>(null);
@@ -313,15 +309,6 @@ export default function HomeHero() {
                     {currentStatus.label}
                   </a>
                 </div>
-              </div>
-
-              {/* LIVE VISITOR COUNT BADGE */}
-              <div className="mt-4 pt-3 border-t border-slate-800/50 w-full flex items-center justify-center gap-2 text-xs font-mono text-slate-300 bg-slate-950/50 py-2 rounded-xl">
-                <Users className="w-4 h-4 text-indigo-400" />
-                <span>Total Visitors:</span>
-                <span className="text-indigo-400 font-bold">
-                  {visitorCount.toLocaleString()}
-                </span>
               </div>
 
             </div>
