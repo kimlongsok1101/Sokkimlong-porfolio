@@ -41,25 +41,20 @@ export default function Contact() {
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [cooldownUntil, setCooldownUntil] = useState<number | null>(() => {
-    if (typeof window === "undefined") {
-      return null;
-    }
-    const stored = window.localStorage.getItem("contactCooldownUntil");
-    if (!stored) {
-      return null;
-    }
-    const timestamp = Number(stored);
-    return Number.isFinite(timestamp) && timestamp > Date.now() ? timestamp : null;
-  });
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [, setCooldownTick] = useState(0);
   const [popup, setPopup] = useState({ visible: false, message: "" });
   const COOLDOWN_STORAGE_KEY = "contactCooldownUntil";
+  const CONTACT_LOCKOUT_MS = 60 * 1000; // 60 seconds
 
   const updateCooldown = (timestamp: number | null) => {
-    setCooldownUntil(timestamp);
+    const now = Date.now();
+    const safeTimestamp = timestamp && timestamp > now ? Math.min(timestamp, now + CONTACT_LOCKOUT_MS) : null;
+    setCooldownUntil(safeTimestamp);
+
     if (typeof window !== "undefined") {
-      if (timestamp && timestamp > Date.now()) {
-        window.localStorage.setItem(COOLDOWN_STORAGE_KEY, String(timestamp));
+      if (safeTimestamp && safeTimestamp > now) {
+        window.localStorage.setItem(COOLDOWN_STORAGE_KEY, String(safeTimestamp));
       } else {
         window.localStorage.removeItem(COOLDOWN_STORAGE_KEY);
       }
@@ -137,8 +132,13 @@ export default function Contact() {
     const stored = window.localStorage.getItem(COOLDOWN_STORAGE_KEY);
     if (stored) {
       const timestamp = Number(stored);
-      if (Number.isFinite(timestamp) && timestamp > Date.now()) {
-        setCooldownUntil(timestamp);
+      const now = Date.now();
+      if (Number.isFinite(timestamp) && timestamp > now) {
+        if (timestamp <= now + CONTACT_LOCKOUT_MS) {
+          setCooldownUntil(timestamp);
+        } else {
+          window.localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+        }
       } else {
         window.localStorage.removeItem(COOLDOWN_STORAGE_KEY);
       }
@@ -149,6 +149,12 @@ export default function Contact() {
     if (!cooldownUntil) return;
     const timeout = window.setTimeout(() => updateCooldown(null), Math.max(0, cooldownUntil - Date.now()));
     return () => window.clearTimeout(timeout);
+  }, [cooldownUntil]);
+
+  useEffect(() => {
+    if (!cooldownUntil || cooldownUntil <= Date.now()) return;
+    const interval = window.setInterval(() => setCooldownTick((tick) => tick + 1), 1000);
+    return () => window.clearInterval(interval);
   }, [cooldownUntil]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {

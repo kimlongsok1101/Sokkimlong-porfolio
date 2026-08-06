@@ -73,7 +73,7 @@ const containsBlockedWord = (text: string) => {
 
 const MAX_CONTACT_ATTEMPTS = 3;
 const CONTACT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-const CONTACT_LOCKOUT_MS = 10 * 60 * 1000; // 10 minutes
+const CONTACT_LOCKOUT_MS = 60 * 1000; // 60 seconds
 
 function getClientIp(request: Request) {
   const headerKeys = [
@@ -104,6 +104,29 @@ function getClientIp(request: Request) {
   return "unknown";
 }
 
+let cachedMessagesHaveIpColumn: boolean | null = null;
+
+async function hasMessagesIpColumn(supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>) {
+  if (cachedMessagesHaveIpColumn !== null) {
+    return cachedMessagesHaveIpColumn;
+  }
+
+  const { error } = await supabase.from("messages").select("ip", { head: true }).limit(1);
+  if (error) {
+    if (/Could not find the 'ip' column/i.test(error.message)) {
+      cachedMessagesHaveIpColumn = false;
+      return false;
+    }
+
+    console.warn("Unable to determine whether messages.ip exists:", error.message);
+    cachedMessagesHaveIpColumn = false;
+    return false;
+  }
+
+  cachedMessagesHaveIpColumn = true;
+  return true;
+}
+
 async function checkContactRateLimit(
   supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
   ip: string,
@@ -111,7 +134,8 @@ async function checkContactRateLimit(
 ) {
   const now = Date.now();
   const windowStart = new Date(now - CONTACT_WINDOW_MS).toISOString();
-  const useIpRateLimit = ip && ip.toLowerCase() !== "unknown";
+  const hasIpColumn = await hasMessagesIpColumn(supabase);
+  const useIpRateLimit = hasIpColumn && ip && ip.toLowerCase() !== "unknown";
 
   const countQuery = supabase
     .from("messages")
@@ -263,9 +287,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Messages cannot contain links." }, { status: 400 });
   }
 
+  const hasIpColumn = await hasMessagesIpColumn(supabase);
+  const messagePayload: { name: string; email: string; content: string; ip?: string } = {
+    name,
+    email,
+    content,
+  };
+
+  if (hasIpColumn && ip && ip.toLowerCase() !== "unknown") {
+    messagePayload.ip = ip;
+  }
+
   const { data, error } = await supabase
     .from("messages")
-    .insert([{ name, email, content, ip }])
+    .insert([messagePayload])
     .select();
 
   if (error) {
