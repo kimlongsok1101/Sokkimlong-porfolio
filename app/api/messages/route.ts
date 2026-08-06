@@ -193,7 +193,7 @@ async function checkContactRateLimit(
 }
 
 const containsBlockedLink = (text: string) => {
-  return /(https?:\/\/|www\.|<\s*a\b|mailto:|\.[a-z]{2,}\b)(\/|$|\s)/i.test(text);
+  return /(?:https?:\/\/|www\.|mailto:|<\s*a\b|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}|\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}\b)/i.test(text);
 };
 
 async function sendTelegramAlert(name: string, email: string, content: string) {
@@ -283,7 +283,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (containsBlockedLink(content)) {
+  if (containsBlockedLink(name) || containsBlockedLink(content)) {
     return NextResponse.json({ error: "Messages cannot contain links." }, { status: 400 });
   }
 

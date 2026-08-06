@@ -115,7 +115,7 @@ export default function Contact() {
   };
 
   const containsBlockedLink = (text: string) => {
-    return /(https?:\/\/|www\.|<\s*a\b|mailto:|\.[a-z]{2,}\b)(\/|$|\s)/i.test(text);
+    return /(?:https?:\/\/|www\.|mailto:|<\s*a\b|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}|\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}\b)/i.test(text);
   };
 
   const showPopupAlert = (message: string) => {
@@ -178,8 +178,8 @@ export default function Contact() {
       return;
     }
 
-    if (containsBlockedLink(formData.message.trim())) {
-      showPopupAlert("Please remove links from your message before sending.");
+    if (containsBlockedLink(formData.name.trim()) || containsBlockedLink(formData.message.trim())) {
+      showPopupAlert("Please remove links from your name or message before sending.");
       return;
     }
 
