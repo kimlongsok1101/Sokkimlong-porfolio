@@ -38,84 +38,49 @@ export default function AdminHistoryPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const postedLoginRecordRef = useRef(false);
 
+  const postLoginHistoryRecord = async (email: string, details: Record<string, unknown>) => {
+    postedLoginRecordRef.current = true;
+
+    try {
+      await fetch("/api/admin/login-history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          status: "success",
+          reason: "successful_login_client",
+          details,
+        }),
+      });
+    } catch {
+      // ignore network errors
+    }
+  };
+
   const isAdmin = sessionEmail?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
-  useEffect(() => {
-    let authListenerSubscription: { unsubscribe: () => void } | null = null;
+  const getBrowserLoginDetails = async () => {
+    const deviceModel = getSimpleDeviceModel(typeof navigator !== "undefined" ? navigator.userAgent : null);
 
-    const loadSession = async () => {
-      const supabase = createSupabaseClient();
-      if (!supabase) {
-        setFeedback("Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
-        setAuthLoading(false);
-        return;
-      }
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      return { deviceModel };
+    }
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+    return new Promise<{ deviceModel: string; deviceLocation?: string }>((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ deviceModel, deviceLocation: `${pos.coords.latitude},${pos.coords.longitude}` }),
+        () => resolve({ deviceModel }),
+        { timeout: 5000 }
+      );
+    });
+  };
 
-      if (session?.user?.email) {
-        setSessionEmail(session.user.email);
+  const tryPostLoginRecord = async (email: string) => {
+    if (postedLoginRecordRef.current) return;
 
-        // If this is the configured admin email, post a login record so admin history captures
-        // sign-ins regardless of provider (password or social). Use browser geolocation when available.
-        try {
-          if (session.user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && !postedLoginRecordRef.current) {
-            const postRecord = async (details: Record<string, unknown>) => {
-              postedLoginRecordRef.current = true;
-              try {
-                await fetch("/api/admin/login-history", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    email: session.user.email,
-                    status: "success",
-                    reason: "successful_login_client",
-                    details,
-                  }),
-                });
-              } catch {
-                // ignore network errors
-              }
-            };
-
-            const deviceModel = getSimpleDeviceModel(navigator?.userAgent);
-
-            if (typeof navigator !== "undefined" && navigator.geolocation) {
-              navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                  const deviceLocation = `${pos.coords.latitude},${pos.coords.longitude}`;
-                  postRecord({ deviceModel, deviceLocation });
-                },
-                () => {
-                  // denied or unavailable
-                  postRecord({ deviceModel });
-                },
-                { timeout: 5000 }
-              );
-            } else {
-              // no geolocation available
-              postRecord({ deviceModel });
-            }
-          }
-        } catch {
-          // swallow errors - don't block UI
-          postedLoginRecordRef.current = true;
-        }
-      }
-      setAuthLoading(false);
-
-      const { data } = supabase.auth.onAuthStateChange((_event, sessionData) => {
-        setSessionEmail(sessionData?.user?.email ?? null);
-      });
-
-      authListenerSubscription = data.subscription;
-    };
-
-    loadSession();
-    return () => authListenerSubscription?.unsubscribe();
-  }, []);
+    const details = await getBrowserLoginDetails();
+    await postLoginHistoryRecord(email, details);
+  };
 
   const loadLoginHistory = async () => {
     setLoading(true);
@@ -137,6 +102,48 @@ export default function AdminHistoryPage() {
 
     setLoading(false);
   };
+
+  useEffect(() => {
+    let authListenerSubscription: { unsubscribe: () => void } | null = null;
+
+    const loadSession = async () => {
+      const supabase = createSupabaseClient();
+      if (!supabase) {
+        setFeedback("Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
+        setAuthLoading(false);
+        return;
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session?.user?.email) {
+        setSessionEmail(session.user.email);
+      }
+
+      setAuthLoading(false);
+
+      const { data } = supabase.auth.onAuthStateChange((event, sessionData) => {
+        const email = sessionData?.user?.email ?? null;
+        setSessionEmail(email);
+
+        if (event === "SIGNED_IN" && email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+          tryPostLoginRecord(email)
+            .then(() => loadLoginHistory())
+            .catch(() => {
+              /* ignore */
+            });
+        }
+      });
+
+      authListenerSubscription = data.subscription;
+    };
+
+    loadSession();
+
+    return () => authListenerSubscription?.unsubscribe();
+  }, []);
 
   const deleteHistoryRecord = async (id: string) => {
     if (!id) return;
