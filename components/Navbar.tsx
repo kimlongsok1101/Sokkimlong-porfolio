@@ -244,15 +244,17 @@ export default function Navbar() {
 
               <button
                 type="button"
-                onClick={toggleTheme}
-                className="py-2 px-3 rounded-lg bg-slate-100 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors flex items-center justify-between"
+                onClick={() => {
+                  toggleTheme();
+                }}
+                className="py-2 px-3 rounded-lg bg-slate-100 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors duration-300 flex items-center justify-between w-full"
                 aria-label="Toggle theme"
               >
-                <span>{mounted && theme === "dark" ? "Light" : "Dark"}</span>
+                <span className="transition-colors duration-300">{mounted && theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}</span>
                 {mounted && theme === "dark" ? (
-                  <Sun className="w-4 h-4" />
+                  <Sun className="w-4 h-4 ml-2" />
                 ) : (
-                  <Moon className="w-4 h-4" />
+                  <Moon className="w-4 h-4 ml-2" />
                 )}
               </button>
 

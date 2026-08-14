@@ -38,9 +38,21 @@ export default function RootLayout({
       lang="en"
       data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                document.documentElement.classList.toggle('dark', theme === 'dark');
+                document.documentElement.classList.toggle('light', theme === 'light');
+              } catch (e) {}
+            `,
+          }}
+        />
       </head>
       <body className="min-h-full flex flex-col">
         {children}
