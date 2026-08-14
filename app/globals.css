@@ -36,13 +36,6 @@ html.light {
   --muted: #64748b;
 }
 
-html,
-body {
-  /* Keep default behavior; avoid applying transitions to every element which is expensive on mobile
-     and increases style recalculation / repaints. Use the .theme-transition class on elements that
-     should animate when theme/colors change. */
-}
-
 /* Use a small targeted set of selectors and an explicit class for theme/visual transitions. Add
    the class "theme-transition" to elements that should animate (e.g., top bars, cards, buttons). */
 .theme-transition,
@@ -51,35 +44,6 @@ body {
 .input,
 .card {
   transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease, fill 0.35s ease, stroke 0.35s ease;
-}
-
-@media (hover: none) and (pointer: coarse) {
-  /* Default to dark theme on touch/coarse-pointer devices unless user explicitly set light */
-  :root:not(.light) {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --surface: #111827;
-    --surface-soft: #111827;
-    --border: #374151;
-    --muted: #94a3b8;
-  }
-  html,
-  body,
-  *,
-  *::before,
-  *::after {
-    transition: none !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-  }
-
-  .backdrop-blur-xl,
-  .backdrop-blur-2xl,
-  .backdrop-blur-md {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
 }
 
 @media (prefers-color-scheme: dark) {
