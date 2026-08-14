@@ -54,6 +54,15 @@ body {
 }
 
 @media (hover: none) and (pointer: coarse) {
+  /* Default to dark theme on touch/coarse-pointer devices unless user explicitly set light */
+  :root:not(.light) {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    --surface: #111827;
+    --surface-soft: #111827;
+    --border: #374151;
+    --muted: #94a3b8;
+  }
   html,
   body,
   *,
