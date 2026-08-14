@@ -14,7 +14,7 @@ export const revalidate = 0;
 
 export default function Home() {
   return (
-    <main className="bg-slate-950 text-slate-100 min-h-screen relative overflow-x-hidden">
+    <main className="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen relative overflow-x-hidden transition-colors duration-300">
       {/* Background Effect */}
       <MatrixRainWrapper />
 

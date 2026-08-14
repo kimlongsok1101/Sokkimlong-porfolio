@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 export default function MatrixRain() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [shouldRender, setShouldRender] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 768px)");
@@ -14,7 +15,9 @@ export default function MatrixRain() {
 
     const updateRenderState = () => {
       const shouldEnable = !mediaQuery.matches && !reducedMotionQuery.matches && !(touchQuery.matches && isSafari);
-      setShouldRender(shouldEnable);
+      const isDark = document.documentElement.classList.contains("dark");
+      setIsDarkMode(isDark);
+      setShouldRender(shouldEnable && isDark);
     };
 
     updateRenderState();
@@ -22,10 +25,20 @@ export default function MatrixRain() {
     reducedMotionQuery.addEventListener("change", updateRenderState);
     touchQuery.addEventListener("change", updateRenderState);
 
+    // Listen for theme changes
+    const observer = new MutationObserver(() => {
+      const isDark = document.documentElement.classList.contains("dark");
+      setIsDarkMode(isDark);
+      setShouldRender(!mediaQuery.matches && !reducedMotionQuery.matches && !(touchQuery.matches && isSafari) && isDark);
+    });
+
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
     return () => {
       mediaQuery.removeEventListener("change", updateRenderState);
       reducedMotionQuery.removeEventListener("change", updateRenderState);
       touchQuery.removeEventListener("change", updateRenderState);
+      observer.disconnect();
     };
   }, []);
 

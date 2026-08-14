@@ -121,7 +121,7 @@ export default function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "py-3 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 shadow-2xl shadow-indigo-950/10"
+          ? "py-3 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-2xl shadow-slate-500/5 dark:shadow-indigo-950/10"
           : "py-5 bg-transparent"
       }`}
     >
@@ -130,7 +130,7 @@ export default function Navbar() {
         <a
           href="#home"
           onClick={(e) => handleNavClick(e, "#home")}
-          className="flex items-center gap-2 font-mono font-extrabold text-slate-100 text-sm sm:text-lg group z-50 shrink-0"
+          className="flex items-center gap-2 font-mono font-extrabold text-slate-900 dark:text-slate-100 text-sm sm:text-lg group z-50 shrink-0"
         >
           <div className="p-1.5 sm:p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 group-hover:border-indigo-500/50 transition-colors">
             <Terminal className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
@@ -142,7 +142,7 @@ export default function Navbar() {
         </a>
 
         {/* Desktop Links */}
-        <nav className="hidden md:flex items-center gap-1 bg-slate-900/60 p-1.5 rounded-full border border-slate-800/80 backdrop-blur-xl">
+        <nav className="hidden md:flex items-center gap-1 bg-white/60 dark:bg-slate-900/60 p-1.5 rounded-full border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-xl">
           {navLinks.map((link) => {
             const isActive = activeSection === link.href.substring(1);
             return (
@@ -151,7 +151,7 @@ export default function Navbar() {
                 href={link.href}
                 onClick={(e) => handleNavClick(e, link.href)}
                 className={`relative px-4 py-2 rounded-full text-xs font-mono transition-colors ${
-                  isActive ? "text-slate-100 font-bold" : "text-slate-400 hover:text-slate-200"
+                  isActive ? "text-slate-900 dark:text-slate-100 font-bold" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
                 }`}
               >
                 {/* Active Indicator Glow Capsule */}
@@ -173,10 +173,10 @@ export default function Navbar() {
           <button
             type="button"
             onClick={toggleTheme}
-            className="relative inline-flex items-center rounded-full border border-slate-800 bg-slate-900/80 p-1 text-slate-300 hover:border-indigo-500/30 hover:text-slate-100 transition-colors"
+            className="relative inline-flex items-center rounded-full border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900/80 p-1 text-slate-600 dark:text-slate-300 hover:border-indigo-500/30 dark:hover:border-indigo-500/30 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
             aria-label="Toggle theme"
           >
-            <div className="relative h-8 w-16 rounded-full bg-slate-800/90 p-1">
+            <div className="relative h-8 w-16 rounded-full bg-slate-200 dark:bg-slate-800/90 p-1">
               <motion.div
                 animate={{ left: theme === "dark" ? 4 : 36 }}
                 transition={{ type: "spring", stiffness: 260, damping: 22 }}
@@ -189,7 +189,7 @@ export default function Navbar() {
 
           <button
             onClick={() => setNotificationsOpen(true)}
-            className="relative p-2.5 rounded-lg bg-slate-900/80 border border-slate-800 text-slate-300 hover:text-slate-100 hover:border-indigo-500/30 transition-colors group"
+            className="relative p-2.5 rounded-lg bg-white dark:bg-slate-900/80 border border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:border-indigo-500/30 dark:hover:border-indigo-500/30 transition-colors group"
             aria-label="Notifications"
           >
             <Bell className="w-4 h-4" />
@@ -198,7 +198,7 @@ export default function Navbar() {
           <a
             href="#support"
             onClick={(e) => handleNavClick(e, "#support")}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500 text-slate-950 text-xs font-mono font-semibold hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/25"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500 dark:bg-amber-600 text-white dark:text-slate-950 text-xs font-mono font-semibold hover:bg-amber-400 dark:hover:bg-amber-500 transition-colors shadow-lg shadow-amber-500/25"
           >
             <Code2 className="w-3.5 h-3.5" /> Support Me
           </a>
@@ -208,7 +208,7 @@ export default function Navbar() {
         <button
           type="button"
           onClick={() => setMobileMenuOpen((prev) => !prev)}
-          className="md:hidden p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white cursor-pointer z-50"
+          className="md:hidden p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer z-50"
           aria-label="Toggle Navigation"
         >
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -223,7 +223,7 @@ export default function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="md:hidden bg-slate-950/95 border-b border-slate-800 backdrop-blur-2xl overflow-hidden"
+            className="md:hidden bg-white/95 dark:bg-slate-950/95 border-b border-slate-200 dark:border-slate-800 backdrop-blur-2xl overflow-hidden"
           >
             <div className="px-6 py-6 flex flex-col gap-4 font-mono text-sm">
               {navLinks.map((link) => {
@@ -233,8 +233,8 @@ export default function Navbar() {
                     key={link.name}
                     href={link.href}
                     onClick={(e) => handleNavClick(e, link.href)}
-                    className={`py-2 border-b border-slate-900 transition-colors ${
-                      isActive ? "text-indigo-400 font-bold" : "text-slate-300 hover:text-indigo-400"
+                    className={`py-2 border-b border-slate-200 dark:border-slate-900 transition-colors ${
+                      isActive ? "text-indigo-600 dark:text-indigo-400 font-bold" : "text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400"
                     }`}
                   >
                     {link.name}
@@ -245,7 +245,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={toggleTheme}
-                className="py-2 px-3 rounded-lg bg-slate-900/50 border border-slate-800 text-slate-300 hover:text-slate-100 transition-colors flex items-center justify-between"
+                className="py-2 px-3 rounded-lg bg-slate-100 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors flex items-center justify-between"
                 aria-label="Toggle theme"
               >
                 <span>{mounted && theme === "dark" ? "Light" : "Dark"}</span>
@@ -261,7 +261,7 @@ export default function Navbar() {
                   setNotificationsOpen(true);
                   setMobileMenuOpen(false);
                 }}
-                className="py-2 px-3 rounded-lg bg-slate-900/50 border border-slate-800 text-slate-300 hover:text-slate-100 transition-colors flex items-center justify-between"
+                className="py-2 px-3 rounded-lg bg-slate-100 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors flex items-center justify-between"
               >
                 <span>Notifications</span>
               </button>
