@@ -198,7 +198,7 @@ export default function Skills() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-100 tracking-tight px-2"
+          className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight px-2 transition-colors"
         >
           {skillsData.headline}
         </motion.h2>
@@ -208,7 +208,7 @@ export default function Skills() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="text-slate-400 text-xs sm:text-sm md:text-base max-w-lg mx-auto mt-2 px-4"
+          className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm md:text-base max-w-lg mx-auto mt-2 px-4 transition-colors"
         >
           {skillsData.description}
         </motion.p>
@@ -227,7 +227,7 @@ export default function Skills() {
               viewport={{ once: true }}
               transition={{ delay: groupIdx * 0.15, duration: 0.5, ease: "easeOut" }}
               whileHover={{ y: -6 }}
-              className="group bg-slate-900/80 border border-slate-800/80 hover:border-indigo-500/40 rounded-3xl p-5 sm:p-6 backdrop-blur-xl shadow-xl hover:shadow-[0_10px_30px_rgba(99,102,241,0.15)] transition-all duration-300 flex flex-col justify-between relative"
+              className="group bg-slate-100 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-800/80 hover:border-slate-400 dark:hover:border-indigo-500/40 rounded-3xl p-5 sm:p-6 backdrop-blur-xl shadow-xl hover:shadow-[0_10px_30px_rgba(99,102,241,0.15)] transition-all duration-300 flex flex-col justify-between relative"
             >
               <div>
                 {/* Category Header */}
@@ -239,12 +239,12 @@ export default function Skills() {
                     <CategoryIcon className="w-5 h-5" />
                   </motion.div>
                   <div>
-                    <h3 className="text-base sm:text-lg font-bold text-slate-100 group-hover:text-indigo-300 transition-colors">
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors">
                       {group.category}
                     </h3>
                   </div>
                 </div>
-                <p className="text-xs text-slate-400 mb-6">{group.description}</p>
+                <p className="text-xs text-slate-700 dark:text-slate-400 mb-6 transition-colors">{group.description}</p>
 
                 {/* Skills Grid */}
                 <div className="space-y-4">
@@ -258,27 +258,27 @@ export default function Skills() {
                         viewport={{ once: true }}
                         transition={{ delay: groupIdx * 0.1 + skillIdx * 0.08, duration: 0.4 }}
                         whileHover={{ scale: 1.02, x: 4 }}
-                        className="p-3 sm:p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/70 hover:border-slate-700 hover:bg-slate-900/90 transition-all shadow-inner"
+                        className="p-3 sm:p-3.5 rounded-2xl bg-slate-200 dark:bg-slate-950/60 border border-slate-300 dark:border-slate-800/70 hover:border-slate-400 dark:hover:border-slate-700 hover:bg-slate-300 dark:hover:bg-slate-900/90 transition-all shadow-inner"
                       >
                         <div className="flex items-center justify-between mb-2.5 gap-2">
                           <div className="flex items-center gap-2.5 min-w-0">
                             <motion.div
                               whileHover={{ rotate: 12, scale: 1.1 }}
-                              className="p-2 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0"
+                              className="p-2 rounded-xl bg-slate-300 dark:bg-slate-900 border border-slate-400 dark:border-slate-800 flex items-center justify-center shrink-0"
                             >
                               <SkillIcon />
                             </motion.div>
-                            <span className="text-xs sm:text-sm font-semibold text-slate-200 truncate">
+                            <span className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-200 truncate transition-colors">
                               {skill.name}
                             </span>
                           </div>
-                          <span className="text-xs font-mono text-indigo-400 font-bold shrink-0">
+                          <span className="text-xs font-mono text-indigo-600 dark:text-indigo-400 font-bold shrink-0 transition-colors">
                             {skill.level}
                           </span>
                         </div>
 
                         {/* Animated Progress Bar */}
-                        <div className="w-full bg-slate-800/80 h-1.5 rounded-full overflow-hidden relative">
+                        <div className="w-full bg-slate-300 dark:bg-slate-800/80 h-1.5 rounded-full overflow-hidden relative transition-colors">
                           <motion.div
                             initial={{ width: "0%" }}
                             whileInView={{ width: skill.level }}

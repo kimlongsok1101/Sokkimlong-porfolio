@@ -284,18 +284,18 @@ export default function Contact() {
   return (
     <section id="contact" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 max-w-5xl mx-auto relative overflow-hidden">
       {popup.visible ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 px-4 py-6 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-[32px] border border-slate-800 bg-slate-900 p-6 shadow-[0_25px_80px_rgba(15,23,42,0.5)]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/50 dark:bg-slate-950/90 px-4 py-6 backdrop-blur-sm transition-colors">
+          <div className="w-full max-w-md rounded-[32px] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-[0_25px_80px_rgba(15,23,42,0.5)] dark:shadow-[0_25px_80px_rgba(15,23,42,0.5)] transition-colors">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-pink-400">Submission blocked</p>
-                <h3 className="mt-3 text-xl font-semibold text-slate-100">Please fix your message</h3>
-                <p className="mt-4 text-sm leading-6 text-slate-300">{popup.message}</p>
+                <h3 className="mt-3 text-xl font-semibold text-slate-900 dark:text-slate-100 transition-colors">Please fix your message</h3>
+                <p className="mt-4 text-sm leading-6 text-slate-700 dark:text-slate-300 transition-colors">{popup.message}</p>
               </div>
               <button
                 type="button"
                 onClick={closePopupAlert}
-                className="rounded-full border border-slate-700 bg-slate-950 px-3.5 py-2 text-sm font-semibold text-slate-100 transition hover:bg-slate-800"
+                className="rounded-full border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-950 px-3.5 py-2 text-sm font-semibold text-slate-900 dark:text-slate-100 transition-colors hover:bg-slate-200 dark:hover:bg-slate-800"
               >
                 Close
               </button>
@@ -331,10 +331,10 @@ export default function Contact() {
         >
           <Sparkles className="w-3.5 h-3.5" /> Connect With Me
         </motion.div>
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight transition-colors">
           {contactData.heading}
         </h2>
-        <p className="text-slate-400 text-sm max-w-md mx-auto mt-2">
+        <p className="text-slate-600 dark:text-slate-400 text-sm max-w-md mx-auto mt-2 transition-colors">
           {contactData.subheading}
         </p>
       </motion.div>
@@ -346,45 +346,45 @@ export default function Contact() {
         viewport={{ once: true }}
         transition={{ duration: 0.5, delay: 0.1 }}
         onSubmit={handleSubmit}
-        className="mx-auto mb-8 max-w-2xl rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 shadow-[0_0_40px_rgba(15,23,42,0.35)] backdrop-blur-xl relative z-10"
+        className="mx-auto mb-8 max-w-2xl rounded-3xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/70 p-6 shadow-[0_0_40px_rgba(229,231,235,0.35)] dark:shadow-[0_0_40px_rgba(15,23,42,0.35)] backdrop-blur-xl relative z-10 transition-colors"
       >
         <div className="mb-5">
-          <h3 className="text-lg font-semibold text-slate-100">Send me a message</h3>
-          <p className="mt-1 text-sm text-slate-400">Share your name, email, and a short message. I’ll get notified in Telegram right away.</p>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 transition-colors">Send me a message</h3>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 transition-colors">Share your name, email, and a short message. I'll get notified in Telegram right away.</p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="text-sm text-slate-300">
+          <label className="text-sm text-slate-700 dark:text-slate-300 transition-colors">
             <span className="mb-2 block">Your name</span>
             <input
               type="text"
               value={formData.name}
               onChange={(event) => setFormData((current) => ({ ...current, name: event.target.value }))}
               placeholder="Enter your name"
-              className="w-full rounded-xl border border-slate-700 bg-slate-950/90 px-3 py-2.5 text-sm text-slate-100 outline-none transition focus:border-indigo-400"
+              className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950/90 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 outline-none transition focus:border-indigo-400 dark:focus:border-indigo-400"
             />
           </label>
 
-          <label className="text-sm text-slate-300">
+          <label className="text-sm text-slate-700 dark:text-slate-300 transition-colors">
             <span className="mb-2 block">Your email</span>
             <input
               type="email"
               value={formData.email}
               onChange={(event) => setFormData((current) => ({ ...current, email: event.target.value }))}
               placeholder="your@email.com"
-              className="w-full rounded-xl border border-slate-700 bg-slate-950/90 px-3 py-2.5 text-sm text-slate-100 outline-none transition focus:border-indigo-400"
+              className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950/90 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 outline-none transition focus:border-indigo-400 dark:focus:border-indigo-400"
             />
           </label>
         </div>
 
-        <label className="mt-4 block text-sm text-slate-300">
+        <label className="mt-4 block text-sm text-slate-700 dark:text-slate-300 transition-colors">
           <span className="mb-2 block">Message</span>
           <textarea
             rows={5}
             value={formData.message}
             onChange={(event) => setFormData((current) => ({ ...current, message: event.target.value }))}
             placeholder="Tell me about your project, idea, or opportunity..."
-            className="w-full rounded-xl border border-slate-700 bg-slate-950/90 px-3 py-2.5 text-sm text-slate-100 outline-none transition focus:border-indigo-400"
+            className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950/90 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 outline-none transition focus:border-indigo-400 dark:focus:border-indigo-400"
           />
         </label>
 
@@ -429,23 +429,23 @@ export default function Contact() {
               variants={cardVariants}
               whileHover={{ y: -5, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className={`group p-5 bg-slate-900/80 border border-slate-800/90 rounded-2xl backdrop-blur-xl transition-all duration-300 flex items-center justify-between ${social.hoverClass}`}
+              className={`group p-5 bg-slate-100 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-800/90 rounded-2xl backdrop-blur-xl transition-all duration-300 flex items-center justify-between ${social.hoverClass}`}
             >
               <div className="flex items-center gap-4">
-                <div className={`p-3 bg-slate-950 rounded-xl border border-slate-800 transition-all duration-300 ${social.iconBoxClass}`}>
+                <div className={`p-3 bg-slate-200 dark:bg-slate-950 rounded-xl border border-slate-300 dark:border-slate-800 transition-all duration-300 ${social.iconBoxClass}`}>
                   <Icon />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-200 group-hover:text-slate-700 dark:group-hover:text-white transition-colors">
                     {social.name}
                   </h3>
-                  <p className="text-xs font-mono text-slate-400">
+                  <p className="text-xs font-mono text-slate-600 dark:text-slate-400 transition-colors">
                     {social.handle}
                   </p>
                 </div>
               </div>
 
-              <ArrowUpRight className="w-4 h-4 text-slate-500 group-hover:text-slate-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
+              <ArrowUpRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
             </motion.a>
           );
         })}

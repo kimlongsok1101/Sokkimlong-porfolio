@@ -270,14 +270,14 @@ export default function HomeHero() {
             animate={{ y: 0, opacity: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 80, damping: 14, delay: 0.1 }}
             whileHover={{ y: -8, transition: { duration: 0.2 } }}
-            className="w-full max-w-sm bg-slate-900/90 border border-slate-800 backdrop-blur-xl rounded-3xl p-6 shadow-2xl relative group hover:border-indigo-500/50 transition-colors"
+            className="w-full max-w-sm bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 backdrop-blur-xl rounded-3xl p-6 shadow-2xl relative group hover:border-indigo-400 dark:hover:border-indigo-500/50 transition-colors"
           >
             <div className="absolute top-0 left-0 w-full h-2.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-t-3xl" />
             
             <div className="flex flex-col items-center text-center">
               
               {/* Profile Avatar Frame */}
-              <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-indigo-500/30 p-1 mb-4 bg-slate-950">
+              <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-indigo-500/30 p-1 mb-4 bg-slate-200 dark:bg-slate-950">
                 <NextImage
                   src="/profile.jpg"
                   alt="Sokkimlong Profile Picture"
@@ -292,22 +292,22 @@ export default function HomeHero() {
                 <Sparkles className="w-3.5 h-3.5" /> Software Developer & Designer
               </div>
 
-              <h1 className="text-2xl font-black text-slate-100 tracking-wider">SOKKIMLONG</h1>
-              <p className="text-indigo-400 font-medium text-xs mt-1">SETEC Institute • MIS Year 1</p>
+              <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-wider transition-colors">SOKKIMLONG</h1>
+              <p className="text-indigo-600 dark:text-indigo-400 font-medium text-xs mt-1 transition-colors">SETEC Institute • MIS Year 1</p>
 
-              <div className="mt-5 pt-4 border-t border-slate-800/80 w-full flex justify-around text-xs">
+              <div className="mt-5 pt-4 border-t border-slate-300 dark:border-slate-800/80 w-full flex justify-around text-xs transition-colors">
                 <div>
-                  <span className="block text-slate-400 font-medium">Major</span>
-                  <span className="text-slate-200 font-bold">MIS</span>
+                  <span className="block text-slate-600 dark:text-slate-400 font-medium transition-colors">Major</span>
+                  <span className="text-slate-900 dark:text-slate-200 font-bold transition-colors">MIS</span>
                 </div>
-                <div className="h-8 w-px bg-slate-800" />
+                <div className="h-8 w-px bg-slate-300 dark:bg-slate-800" />
                 <div>
-                  <span className="block text-slate-400 font-medium">Status</span>
+                  <span className="block text-slate-600 dark:text-slate-400 font-medium transition-colors">Status</span>
                   <a
                     href="https://discord.com/users/745943593432121465"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-slate-200 font-bold flex items-center gap-1.5 transition-colors hover:text-indigo-300"
+                    className="text-slate-900 dark:text-slate-200 font-bold flex items-center gap-1.5 transition-colors hover:text-indigo-600 dark:hover:text-indigo-300"
                     aria-label="Open Discord profile"
                   >
                     <span className="relative flex w-2 h-2">
@@ -330,7 +330,7 @@ export default function HomeHero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="w-full max-w-sm bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl p-4 rounded-3xl shadow-2xl relative overflow-hidden flex flex-col gap-3"
+              className="w-full max-w-sm bg-slate-100 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800/80 backdrop-blur-xl p-4 rounded-3xl shadow-2xl relative overflow-hidden flex flex-col gap-3 transition-colors"
             >
               <div className="flex items-center justify-between px-1 pt-1 pb-1">
                 <div className="flex items-center gap-2">
@@ -338,7 +338,7 @@ export default function HomeHero() {
                     <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
                     <span className="relative inline-flex rounded-full w-2.5 h-2.5 bg-emerald-500" />
                   </span>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 transition-colors">
                     Current Activity
                   </h3>
                 </div>
@@ -347,15 +347,15 @@ export default function HomeHero() {
               {activityCards.map((card) => (
                 <div 
                   key={card.key} 
-                  className="w-full bg-slate-950/70 border border-slate-800/80 p-3.5 rounded-2xl text-left relative overflow-hidden shadow-lg transition-all duration-300 hover:border-indigo-500/30"
+                  className="w-full bg-slate-200 dark:bg-slate-950/70 border border-slate-400 dark:border-slate-800/80 p-3.5 rounded-2xl text-left relative overflow-hidden shadow-lg transition-all duration-300 hover:border-indigo-400 dark:hover:border-indigo-500/30"
                 >
-                  <span className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  <span className="block text-[10px] font-semibold text-slate-700 dark:text-slate-400 uppercase tracking-wider mb-2 transition-colors">
                     {card.title}
                   </span>
                   
                   <div className="flex items-center gap-3">
                     {card.image ? (
-                      <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-slate-900 border border-slate-800">
+                      <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-slate-300 dark:bg-slate-900 border border-slate-400 dark:border-slate-800 transition-colors">
                         <NextImage
                           src={card.image}
                           alt="Thumbnail"
@@ -364,7 +364,7 @@ export default function HomeHero() {
                           className="object-cover"
                         />
                         {card.smallImage && (
-                          <div className="absolute bottom-0 right-0 w-5 h-5 rounded-full overflow-hidden border border-slate-900 bg-slate-950">
+                          <div className="absolute bottom-0 right-0 w-5 h-5 rounded-full overflow-hidden border border-slate-200 dark:border-slate-900 bg-slate-300 dark:bg-slate-950 transition-colors">
                             <NextImage src={card.smallImage} alt="Badge" fill sizes="20px" className="object-cover" />
                           </div>
                         )}
@@ -375,11 +375,11 @@ export default function HomeHero() {
                       </div>
                     )}
                     <div className="flex flex-col min-w-0 flex-1">
-                      <span className="text-xs font-bold text-slate-100 truncate">
+                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate transition-colors">
                         {card.name}
                       </span>
                       {card.details && (
-                        <span className="text-[11px] text-slate-400 truncate">
+                        <span className="text-[11px] text-slate-600 dark:text-slate-400 truncate transition-colors">
                           {card.details}
                         </span>
                       )}
@@ -388,11 +388,11 @@ export default function HomeHero() {
 
                   {card.type === "spotify" && card.progress !== undefined && card.progress !== null ? (
                     <div className="mt-3">
-                      <div className="flex justify-between text-[10px] font-mono text-slate-400 mb-1">
+                      <div className="flex justify-between text-[10px] font-mono text-slate-600 dark:text-slate-400 mb-1 transition-colors">
                         <span>{card.elapsedFormatted}</span>
                         <span>{card.durationFormatted}</span>
                       </div>
-                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-3">
+                      <div className="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-full overflow-hidden mb-3 transition-colors">
                         <div
                           className="h-full bg-emerald-400 rounded-full transition-all duration-300 ease-linear"
                           style={{ width: `${card.progress}%` }}
@@ -405,7 +405,7 @@ export default function HomeHero() {
                           href={`https://open.spotify.com/track/${card.trackId}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 rounded-xl text-xs font-medium text-slate-200 flex items-center justify-center gap-2 transition-colors shadow-sm"
+                          className="w-full py-2 px-3 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700/60 hover:border-slate-400 dark:hover:border-slate-600 rounded-xl text-xs font-medium text-slate-900 dark:text-slate-200 flex items-center justify-center gap-2 transition-all"
                         >
                           <Music className="w-3.5 h-3.5 text-emerald-400" />
                           <span>Play on Spotify</span>
@@ -414,7 +414,7 @@ export default function HomeHero() {
                       )}
                     </div>
                   ) : card.elapsedFormatted ? (
-                    <div className="mt-2 text-[10px] font-mono text-slate-400 flex items-center gap-1.5 pt-2 border-t border-slate-800/50">
+                    <div className="mt-2 text-[10px] font-mono text-slate-600 dark:text-slate-400 flex items-center gap-1.5 pt-2 border-t border-slate-400 dark:border-slate-800/50 transition-colors">
                       <span>🎮</span>
                       <span>{card.elapsedFormatted}</span>
                     </div>

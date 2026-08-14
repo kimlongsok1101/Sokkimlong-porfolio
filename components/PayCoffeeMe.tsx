@@ -10,14 +10,14 @@ export default function PayCoffeeMe() {
 
   return (
     <section id="support" className="relative mx-auto max-w-5xl px-4 sm:px-6 py-16 sm:py-24">
-      <div className="rounded-3xl border border-amber-500/20 bg-slate-900/90 p-8 shadow-2xl shadow-amber-950/20 sm:p-10">
+      <div className="rounded-3xl border border-amber-500/20 bg-slate-100/80 dark:bg-slate-900/90 p-8 shadow-2xl shadow-amber-950/20 sm:p-10 transition-colors duration-300">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs font-mono text-amber-300">
               <Coffee className="h-4 w-4" /> Pay Coffee Me
             </div>
-            <h2 className="mt-4 text-3xl font-extrabold text-slate-100 sm:text-4xl">Support my work</h2>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-400">
+            <h2 className="mt-4 text-3xl font-extrabold text-slate-900 dark:text-slate-100 sm:text-4xl transition-colors">Support my work</h2>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-400 transition-colors">
               If you like what I do and want to support my work, a small tip goes a long way. Thank you for your generosity!
             </p>
           </div>
@@ -39,31 +39,31 @@ export default function PayCoffeeMe() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 px-4 py-6 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-white/50 dark:bg-slate-950/90 px-4 py-6 backdrop-blur-sm transition-colors"
           >
             <motion.div
               initial={{ opacity: 0, y: 30, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.98 }}
               transition={{ type: "spring", stiffness: 180, damping: 18, duration: 0.35 }}
-              className="w-full max-w-xl overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-900 shadow-2xl shadow-black/50"
+              className="w-full max-w-xl overflow-hidden rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl shadow-black/50 dark:shadow-black/50 transition-colors"
             >
-              <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4 transition-colors">
                 <div>
                   <p className="text-xs font-mono uppercase tracking-[0.2em] text-amber-300">Bank QR</p>
-                  <h3 className="mt-1 text-xl font-bold text-slate-100">Scan to support</h3>
+                  <h3 className="mt-1 text-xl font-bold text-slate-900 dark:text-slate-100 transition-colors">Scan to support</h3>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="rounded-full border border-slate-700 bg-slate-950/80 p-2 text-slate-300 transition hover:bg-slate-900 hover:text-white"
+                  className="rounded-full border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-950/80 p-2 text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-200 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white"
                   aria-label="Close bank QR popup"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
-              <div className="bg-slate-950 p-6 text-center">
+              <div className="bg-slate-100 dark:bg-slate-950 p-6 text-center transition-colors">
                 <div className="mx-auto max-h-[32rem] w-full max-w-md overflow-hidden rounded-3xl">
                   <Image
                     src="/qr.jpg"
@@ -74,8 +74,8 @@ export default function PayCoffeeMe() {
                     className="w-full h-auto object-contain"
                   />
                 </div>
-                <p className="mt-5 text-sm text-slate-400">
-                  Scan the QR code from your bank app to send support. Replace <code className="rounded bg-slate-800 px-1 py-0.5 text-amber-200">And</code> Thank you for Buy me a coffee! ☕
+                <p className="mt-5 text-sm text-slate-600 dark:text-slate-400 transition-colors">
+                  Scan the QR code from your bank app to send support. Replace <code className="rounded bg-slate-200 dark:bg-slate-800 px-1 py-0.5 text-slate-900 dark:text-amber-200 transition-colors">And</code> Thank you for Buy me a coffee! ☕
                 </p>
               </div>
             </motion.div>
