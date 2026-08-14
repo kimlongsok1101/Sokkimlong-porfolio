@@ -35,26 +35,27 @@ export default function HomeHero() {
   const [currentTime, setCurrentTime] = useState<number>(Date.now());
 
   const discordData = useDiscordStatus("745943593432121465");
+  
+  // Track specific references to detect track changes and explicit time jumps
   const prevTrackIdRef = useRef<string | null>(null);
-  const prevStartTimestampRef = useRef<number | null>(null);
+  const prevStartRef = useRef<number | null>(null);
 
-  // Robust real-time ticker that handles mobile throttling
+  // Real-time ticker setup optimized for mobile browsers
   useEffect(() => {
     let animationFrameId: number;
-    
+
     const updateTimer = () => {
       setCurrentTime(Date.now());
       animationFrameId = requestAnimationFrame(updateTimer);
     };
 
-    // Use requestAnimationFrame combined with an interval fallback for ultimate mobile smoothness
     const timer = setInterval(() => {
       setCurrentTime(Date.now());
-    }, 250); // Faster tick rate (250ms) makes progress smooth on mobile skips
+    }, 250);
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        setCurrentTime(Date.now()); // Immediate re-sync when user tabs back in on mobile
+        setCurrentTime(Date.now());
       }
     };
 
@@ -67,19 +68,23 @@ export default function HomeHero() {
     };
   }, []);
 
-  // Instantly re-sync currentTime when Spotify changes tracks (skip) or updates timestamps
+  // Force absolute synchronization on track change or timestamp alteration
   useEffect(() => {
-    if (discordData?.spotify) {
+    if (discordData?.spotify?.timestamps) {
       const currentTrackId = discordData.spotify.track_id;
-      const currentStart = discordData.spotify.timestamps?.start;
+      const { start } = discordData.spotify.timestamps;
+      const startMs = start < 10000000000 ? start * 1000 : start;
 
+      // If either the track ID changed OR the starting timestamp shifted forward/backward (skipping)
       if (
         prevTrackIdRef.current !== currentTrackId ||
-        prevStartTimestampRef.current !== currentStart
+        prevStartRef.current !== startMs
       ) {
         prevTrackIdRef.current = currentTrackId;
-        prevStartTimestampRef.current = currentStart || null;
-        setCurrentTime(Date.now());
+        prevStartRef.current = startMs;
+        
+        // Force the reference point to match the exact start time provided by Lanyard
+        setCurrentTime(startMs);
       }
     }
   }, [discordData?.spotify?.track_id, discordData?.spotify?.timestamps?.start]);
