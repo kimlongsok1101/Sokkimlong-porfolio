@@ -35,11 +35,9 @@ export default function HomeHero() {
   const [, setTick] = useState(0);
 
   const discordData = useDiscordStatus("745943593432121465");
-  
-  // Store the forced reset baseline so every track starts counting from 0 when loaded
-  const trackSessionRef = useRef<{ trackId: string; simulatedStartMs: number } | null>(null);
+  const lastTrackIdRef = useRef<string | null>(null);
 
-  // Smooth ticker loop
+  // High-performance ticker loop that forces immediate layout sync when mobile screen wakes up
   useEffect(() => {
     const timer = setInterval(() => {
       setTick((prev) => prev + 1);
@@ -97,19 +95,17 @@ export default function HomeHero() {
       const startMs = start < 10000000000 ? start * 1000 : start;
       const endMs = end < 10000000000 ? end * 1000 : end;
 
-      const actualDuration = endMs - startMs;
+      const duration = endMs - startMs;
       const currentTrackId = discordData.spotify.track_id;
 
-      // FIX: Lock a simulated start time matching right now so playback always begins at 00:00
-      if (!trackSessionRef.current || trackSessionRef.current.trackId !== currentTrackId) {
-        trackSessionRef.current = {
-          trackId: currentTrackId,
-          simulatedStartMs: Date.now(),
-        };
+      // Track change trigger
+      if (lastTrackIdRef.current !== currentTrackId) {
+        lastTrackIdRef.current = currentTrackId;
       }
 
-      const elapsed = Math.min(Math.max(Date.now() - trackSessionRef.current.simulatedStartMs, 0), actualDuration);
-      const progressPercent = actualDuration > 0 ? Math.min((elapsed / actualDuration) * 100, 100) : 0;
+      // Real-time live calculation matching desktop behavior
+      const elapsed = Math.min(Math.max(Date.now() - startMs, 0), duration);
+      const progressPercent = duration > 0 ? Math.min((elapsed / duration) * 100, 100) : 0;
 
       cards.push({
         key: "spotify",
@@ -122,7 +118,7 @@ export default function HomeHero() {
         icon: <Music className="w-3.5 h-3.5 text-emerald-400" />,
         progress: progressPercent,
         elapsedFormatted: formatTime(elapsed),
-        durationFormatted: formatTime(actualDuration),
+        durationFormatted: formatTime(duration),
         trackId: currentTrackId,
       });
     }
