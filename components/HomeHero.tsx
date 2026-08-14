@@ -3,7 +3,7 @@
 import NextImage from "next/image";
 import { motion } from "framer-motion";
 import { ArrowDown, Sparkles, Terminal, Code2, Database, Music, Gamepad2, ExternalLink } from "lucide-react";
-import { useEffect, useState, type MouseEvent, useRef } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import { usePageSection } from "@/lib/usePageSection";
 import { defaultHeroSection } from "@/lib/pageSectionDefaults";
 import { useDiscordStatus, LanyardActivity } from "@/lib/useDiscordStatus";
@@ -32,29 +32,19 @@ export default function HomeHero() {
   const [displayedCode, setDisplayedCode] = useState("");
   const [isMounted, setIsMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [currentTime, setCurrentTime] = useState<number>(Date.now());
+  const [, setTick] = useState(0); // Forces re-render to keep timer smooth
 
   const discordData = useDiscordStatus("745943593432121465");
-  
-  const prevTrackIdRef = useRef<string | null>(null);
-  const prevStartRef = useRef<number | null>(null);
 
-  // Real-time ticker setup optimized for mobile browsers
+  // Lightweight tick loop to keep UI refreshing smoothly on both PC and mobile
   useEffect(() => {
-    let animationFrameId: number;
-
-    const updateTimer = () => {
-      setCurrentTime(Date.now());
-      animationFrameId = requestAnimationFrame(updateTimer);
-    };
-
     const timer = setInterval(() => {
-      setCurrentTime(Date.now());
+      setTick((prev) => prev + 1);
     }, 250);
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        setCurrentTime(Date.now());
+        setTick((prev) => prev + 1);
       }
     };
 
@@ -62,28 +52,9 @@ export default function HomeHero() {
 
     return () => {
       clearInterval(timer);
-      cancelAnimationFrame(animationFrameId);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
-
-  // Force absolute synchronization on track change or timestamp alteration
-  useEffect(() => {
-    if (discordData?.spotify?.timestamps) {
-      const currentTrackId = discordData.spotify.track_id;
-      const { start } = discordData.spotify.timestamps;
-      const startMs = start < 10000000000 ? start * 1000 : start;
-
-      if (
-        prevTrackIdRef.current !== currentTrackId ||
-        prevStartRef.current !== startMs
-      ) {
-        prevTrackIdRef.current = currentTrackId;
-        prevStartRef.current = startMs;
-        setCurrentTime(Date.now());
-      }
-    }
-  }, [discordData?.spotify?.track_id, discordData?.spotify?.timestamps?.start]);
 
   const getStatusConfig = () => {
     const rawStatus = discordData?.discord_status || "offline";
@@ -124,7 +95,9 @@ export default function HomeHero() {
       const endMs = end < 10000000000 ? end * 1000 : end;
 
       const duration = endMs - startMs;
-      const elapsed = Math.min(Math.max(currentTime - startMs, 0), duration);
+      
+      // Directly compute elapsed time against live Date.now() to prevent mobile lag/skips desyncing
+      const elapsed = Math.min(Math.max(Date.now() - startMs, 0), duration);
       const progressPercent = duration > 0 ? Math.min((elapsed / duration) * 100, 100) : 0;
 
       cards.push({
@@ -176,7 +149,7 @@ export default function HomeHero() {
         let elapsedFormatted = null;
         if (act.timestamps?.start) {
           const startMs = act.timestamps.start < 10000000000 ? act.timestamps.start * 1000 : act.timestamps.start;
-          const elapsed = Math.max(currentTime - startMs, 0);
+          const elapsed = Math.max(Date.now() - startMs, 0);
           elapsedFormatted = formatTime(elapsed);
         }
 
