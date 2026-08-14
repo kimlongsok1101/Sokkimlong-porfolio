@@ -246,7 +246,7 @@ export default function HomeHero() {
   };
 
   return (
-    <section id="home" className="min-h-screen flex flex-col justify-center items-center relative pt-28 pb-16 px-6 overflow-hidden">
+    <section id="home" className="min-h-screen flex flex-col justify-center items-center relative pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 overflow-hidden">
       {/* Cyber Grid Background */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
 
@@ -261,7 +261,7 @@ export default function HomeHero() {
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-indigo-600/10 rounded-full blur-[90px] pointer-events-none" />
       )}
 
-      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-10 items-center z-10">
+      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-10 items-center z-10">
         
         {/* LEFT COLUMN: ID Card + Real-time Current Activity Container */}
         <div className="lg:col-span-5 flex flex-col gap-4 items-center w-full">

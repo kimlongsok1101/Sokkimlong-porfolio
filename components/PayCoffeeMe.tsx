@@ -9,7 +9,7 @@ export default function PayCoffeeMe() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <section id="support" className="relative mx-auto max-w-5xl px-6 py-24">
+    <section id="support" className="relative mx-auto max-w-5xl px-4 sm:px-6 py-16 sm:py-24">
       <div className="rounded-3xl border border-amber-500/20 bg-slate-900/90 p-8 shadow-2xl shadow-amber-950/20 sm:p-10">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>

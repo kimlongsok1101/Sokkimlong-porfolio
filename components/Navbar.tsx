@@ -125,19 +125,20 @@ export default function Navbar() {
           : "py-5 bg-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
         {/* Brand Logo */}
         <a
           href="#home"
           onClick={(e) => handleNavClick(e, "#home")}
-          className="flex items-center gap-2 font-mono font-extrabold text-slate-100 text-lg group z-50"
+          className="flex items-center gap-2 font-mono font-extrabold text-slate-100 text-sm sm:text-lg group z-50 shrink-0"
         >
-          <div className="p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 group-hover:border-indigo-500/50 transition-colors">
-            <Terminal className="w-4 h-4" />
+          <div className="p-1.5 sm:p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 group-hover:border-indigo-500/50 transition-colors">
+            <Terminal className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
           </div>
-          <span>
+          <span className="hidden sm:inline">
             SOKKIMLONG<span className="text-indigo-400">.SITE</span>
           </span>
+          <span className="sm:hidden text-xs">LONG<span className="text-indigo-400">.DEV</span></span>
         </a>
 
         {/* Desktop Links */}

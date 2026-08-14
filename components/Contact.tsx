@@ -282,7 +282,7 @@ export default function Contact() {
   };
 
   return (
-    <section id="contact" className="py-24 px-6 max-w-5xl mx-auto relative overflow-hidden">
+    <section id="contact" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 max-w-5xl mx-auto relative overflow-hidden">
       {popup.visible ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 px-4 py-6 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-[32px] border border-slate-800 bg-slate-900 p-6 shadow-[0_25px_80px_rgba(15,23,42,0.5)]">

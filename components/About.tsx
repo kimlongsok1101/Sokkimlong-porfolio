@@ -63,23 +63,23 @@ export default function About() {
   const cvPath = aboutData.ctaHref ?? "/cv.pdf";
 
   return (
-    <section id="about" className="py-24 px-6 max-w-6xl mx-auto relative">
+    <section id="about" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 max-w-6xl mx-auto relative">
       {/* Section Header */}
-      <div className="text-center mb-16">
+      <div className="text-center mb-12 sm:mb-16">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-mono mb-3"
+          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-mono mb-2 sm:mb-3"
         >
           <User className="w-3.5 h-3.5" /> // About Me
         </motion.div>
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-100 tracking-tight">
           {aboutData.heading}
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
         
         {/* LEFT COLUMN: Bio & Highlights & CV Buttons */}
         <motion.div
