@@ -15,34 +15,33 @@ export default function ProjectsSection() {
       {/* Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
+      {/* Header and Description (matches screenshot style) */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.3 }}
+        className="relative z-10 mb-8"
+      >
+        <h2 className="text-3xl sm:text-4xl font-bold text-slate-100 mb-4">{projectData.headline}</h2>
+        <p className="text-slate-300 max-w-3xl mx-auto mb-3">{projectData.description}</p>
+        <p className="text-slate-400 max-w-3xl mx-auto">Browse selected projects showcasing frontend, full-stack, and design work.</p>
+      </motion.div>
+
       {/* Main Single Action Button */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.3 }}
-        className="relative z-10"
+        className="relative z-10 mt-8"
       >
         <Link
           href="/projects"
-          className="group inline-flex items-center gap-4 px-8 py-5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:scale-105"
+          className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-2xl transition-transform duration-200 hover:scale-105"
         >
-          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-            <FolderKanban className="w-5 h-5" />
-          </div>
-
-          <div className="text-left">
-            <h3 className="text-lg font-bold text-slate-100 group-hover:text-indigo-300 transition-colors">
-              {projectData.headline}
-            </h3>
-            <p className="text-xs text-slate-400">
-              {projectData.description}
-            </p>
-          </div>
-
-          <div className="ml-2 p-2 rounded-lg bg-slate-950 text-indigo-400 group-hover:translate-x-1 transition-transform">
-            <ArrowRight className="w-4 h-4" />
-          </div>
+          {projectData.buttonLabel ?? "View My Project"}
+          <ArrowRight className="w-4 h-4 opacity-90" />
         </Link>
       </motion.div>
     </section>

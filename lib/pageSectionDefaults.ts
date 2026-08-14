@@ -109,7 +109,7 @@ export const defaultSkillsSection: SkillsSectionPayload = {
 export const defaultProjectsSection: ProjectsSectionPayload = {
   headline: "Explore Projects Showcase",
   description: "Browse Fullstack, Design & Frontend categories",
-  buttonLabel: "Explore Projects Showcase",
+  buttonLabel: "View My Project",
   buttonHref: "/projects",
 };
 
