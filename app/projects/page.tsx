@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Sparkles, Code2, Palette, Layout, ArrowRight, ArrowLeft } from "lucide-react";
 
 // Motion-enabled Next.js Link component to match the other pages
-const MotionLink = motion(Link);
+const MotionLink = motion.create(Link);
 
 const projectCategories = [
   {

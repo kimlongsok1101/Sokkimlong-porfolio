@@ -154,7 +154,7 @@ function connect(discordId: string) {
     } catch (e) {
       info = "Unknown WebSocket error";
     }
-    console.warn("Lanyard WebSocket error:", info);
+    // Silently handle WebSocket errors - reconnection is handled by scheduleReconnect
     // onerror may be followed by onclose; close to ensure cleanup
     try {
       entry!.ws?.close();

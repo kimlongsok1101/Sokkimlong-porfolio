@@ -28,21 +28,27 @@ export default function ProjectsSection() {
         <p className="text-slate-400 max-w-3xl mx-auto">Browse selected projects showcasing frontend, full-stack, and design work.</p>
       </motion.div>
 
-      {/* Main Single Action Button */}
+      {/* Animated Box with Button */}
       <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, scale: 0.8 }}
+        whileInView={{ opacity: 1, scale: 1 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.3 }}
-        className="relative z-10 mt-8"
+        transition={{ duration: 0.5 }}
+        whileHover={{ scale: 1.05 }}
+        className="relative z-10 mt-12 mb-8 p-8 rounded-2xl bg-gradient-to-br from-indigo-600/20 to-purple-600/10 border border-indigo-500/30 hover:border-indigo-400/60 transition-colors duration-300 backdrop-blur-sm"
       >
-        <Link
-          href="/projects"
-          className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-2xl transition-transform duration-200 hover:scale-105"
-        >
-          {projectData.buttonLabel ?? "View My Project"}
-          <ArrowRight className="w-4 h-4 opacity-90" />
-        </Link>
+        <div className="text-center">
+          <FolderKanban className="w-12 h-12 mx-auto mb-4 text-indigo-400" />
+          <h3 className="text-xl font-semibold text-slate-100 mb-2">Featured Projects</h3>
+          <p className="text-slate-300 mb-6">Explore my latest work and creative solutions</p>
+          <Link
+            href="/projects"
+            className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-2xl transition-transform duration-200 hover:scale-105"
+          >
+            {projectData.buttonLabel ?? "View My Project"}
+            <ArrowRight className="w-4 h-4 opacity-90" />
+          </Link>
+        </div>
       </motion.div>
     </section>
   );
