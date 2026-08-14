@@ -135,7 +135,7 @@ export default function About() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setIsOpenCvModal(true)}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold shadow-lg shadow-indigo-600/20 transition-colors cursor-pointer"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-indigo-600 dark:bg-indigo-600 hover:bg-indigo-500 dark:hover:bg-indigo-500 text-white dark:text-white text-sm font-semibold shadow-lg shadow-indigo-600/30 dark:shadow-indigo-950/40 transition-all cursor-pointer"
             >
               <Eye className="w-4 h-4" />
               <span>{aboutData.ctaText}</span>
@@ -147,9 +147,9 @@ export default function About() {
               whileTap={{ scale: 0.98 }}
               href={cvPath}
               download="SOKKIMLONG-CV.pdf"
-              className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-sm font-semibold transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-600/80 to-indigo-500/80 dark:from-indigo-600 dark:to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 dark:hover:from-indigo-500 dark:hover:to-indigo-400 border border-indigo-500/50 dark:border-indigo-400/30 text-white dark:text-white text-sm font-semibold shadow-lg shadow-indigo-600/20 dark:shadow-indigo-950/30 transition-all"
             >
-              <Download className="w-4 h-4 text-indigo-400" />
+              <Download className="w-4 h-4" />
               <span>Download CV</span>
             </motion.a>
           </div>
@@ -239,7 +239,7 @@ export default function About() {
                     href={cvPath}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-700 dark:bg-slate-800 border border-slate-600 dark:border-slate-700 text-slate-200 dark:text-slate-300 hover:text-white dark:hover:text-white hover:bg-slate-600 dark:hover:bg-slate-700 text-xs font-semibold transition-colors"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">Open Tab</span>
@@ -247,7 +247,7 @@ export default function About() {
                   <a
                     href={cvPath}
                     download="SOKKIMLONG-CV.pdf"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-600 hover:text-white text-xs font-semibold transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600/30 dark:bg-indigo-600/40 border border-indigo-500/50 dark:border-indigo-400/40 text-indigo-300 dark:text-indigo-300 hover:text-indigo-100 dark:hover:text-white hover:bg-indigo-600/50 dark:hover:bg-indigo-600/60 text-xs font-semibold transition-colors"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Download CV</span>
@@ -255,7 +255,7 @@ export default function About() {
                   <button
                     type="button"
                     onClick={() => setIsOpenCvModal(false)}
-                    className="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-slate-100 hover:bg-slate-700 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-xl bg-slate-700 dark:bg-slate-800 text-slate-400 dark:text-slate-400 hover:text-slate-100 dark:hover:text-slate-100 hover:bg-slate-600 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                   >
                     <X className="w-5 h-5" />
                   </button>
