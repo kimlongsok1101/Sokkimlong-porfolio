@@ -36,7 +36,6 @@ export default function HomeHero() {
 
   const discordData = useDiscordStatus("745943593432121465");
   
-  // Track specific references to detect track changes and explicit time jumps
   const prevTrackIdRef = useRef<string | null>(null);
   const prevStartRef = useRef<number | null>(null);
 
@@ -75,16 +74,13 @@ export default function HomeHero() {
       const { start } = discordData.spotify.timestamps;
       const startMs = start < 10000000000 ? start * 1000 : start;
 
-      // If either the track ID changed OR the starting timestamp shifted forward/backward (skipping)
       if (
         prevTrackIdRef.current !== currentTrackId ||
         prevStartRef.current !== startMs
       ) {
         prevTrackIdRef.current = currentTrackId;
         prevStartRef.current = startMs;
-        
-        // Force the reference point to match the exact start time provided by Lanyard
-        setCurrentTime(startMs);
+        setCurrentTime(Date.now());
       }
     }
   }, [discordData?.spotify?.track_id, discordData?.spotify?.timestamps?.start]);
