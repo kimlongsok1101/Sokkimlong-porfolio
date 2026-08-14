@@ -3,7 +3,7 @@
 import NextImage from "next/image";
 import { motion } from "framer-motion";
 import { ArrowDown, Sparkles, Terminal, Code2, Database, Music, Gamepad2, ExternalLink } from "lucide-react";
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useState, type MouseEvent, useRef } from "react";
 import { usePageSection } from "@/lib/usePageSection";
 import { defaultHeroSection } from "@/lib/pageSectionDefaults";
 import { useDiscordStatus, LanyardActivity } from "@/lib/useDiscordStatus";
@@ -32,11 +32,14 @@ export default function HomeHero() {
   const [displayedCode, setDisplayedCode] = useState("");
   const [isMounted, setIsMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [, setTick] = useState(0); // Forces re-render to keep timer smooth
+  const [, setTick] = useState(0);
 
   const discordData = useDiscordStatus("745943593432121465");
+  
+  // Store the forced reset baseline so every track starts counting from 0 when loaded
+  const trackSessionRef = useRef<{ trackId: string; simulatedStartMs: number } | null>(null);
 
-  // Lightweight tick loop to keep UI refreshing smoothly on both PC and mobile
+  // Smooth ticker loop
   useEffect(() => {
     const timer = setInterval(() => {
       setTick((prev) => prev + 1);
@@ -94,11 +97,19 @@ export default function HomeHero() {
       const startMs = start < 10000000000 ? start * 1000 : start;
       const endMs = end < 10000000000 ? end * 1000 : end;
 
-      const duration = endMs - startMs;
-      
-      // Directly compute elapsed time against live Date.now() to prevent mobile lag/skips desyncing
-      const elapsed = Math.min(Math.max(Date.now() - startMs, 0), duration);
-      const progressPercent = duration > 0 ? Math.min((elapsed / duration) * 100, 100) : 0;
+      const actualDuration = endMs - startMs;
+      const currentTrackId = discordData.spotify.track_id;
+
+      // FIX: Lock a simulated start time matching right now so playback always begins at 00:00
+      if (!trackSessionRef.current || trackSessionRef.current.trackId !== currentTrackId) {
+        trackSessionRef.current = {
+          trackId: currentTrackId,
+          simulatedStartMs: Date.now(),
+        };
+      }
+
+      const elapsed = Math.min(Math.max(Date.now() - trackSessionRef.current.simulatedStartMs, 0), actualDuration);
+      const progressPercent = actualDuration > 0 ? Math.min((elapsed / actualDuration) * 100, 100) : 0;
 
       cards.push({
         key: "spotify",
@@ -111,8 +122,8 @@ export default function HomeHero() {
         icon: <Music className="w-3.5 h-3.5 text-emerald-400" />,
         progress: progressPercent,
         elapsedFormatted: formatTime(elapsed),
-        durationFormatted: formatTime(duration),
-        trackId: discordData.spotify.track_id,
+        durationFormatted: formatTime(actualDuration),
+        trackId: currentTrackId,
       });
     }
 
