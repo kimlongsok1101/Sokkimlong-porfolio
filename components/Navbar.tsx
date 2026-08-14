@@ -138,7 +138,7 @@ export default function Navbar() {
           <span className="hidden sm:inline">
             SOKKIMLONG<span className="text-indigo-400">.SITE</span>
           </span>
-          <span className="sm:hidden text-xs">LONG<span className="text-indigo-400">.DEV</span></span>
+          <span className="sm:hidden text-xs">SOKKIMLONG<span className="text-indigo-400">.SITE</span></span>
         </a>
 
         {/* Desktop Links */}
