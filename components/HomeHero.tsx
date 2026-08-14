@@ -79,6 +79,7 @@ export default function HomeHero() {
     title: string;
     name: string;
     details: string;
+    state?: string;
     image: string | null;
     smallImage?: string | null;
     icon: React.JSX.Element;
@@ -98,12 +99,10 @@ export default function HomeHero() {
       const duration = endMs - startMs;
       const currentTrackId = discordData.spotify.track_id;
 
-      // Track change trigger
       if (lastTrackIdRef.current !== currentTrackId) {
         lastTrackIdRef.current = currentTrackId;
       }
 
-      // Real-time live calculation matching desktop behavior
       const elapsed = Math.min(Math.max(Date.now() - startMs, 0), duration);
       const progressPercent = duration > 0 ? Math.min((elapsed / duration) * 100, 100) : 0;
 
@@ -165,7 +164,8 @@ export default function HomeHero() {
           type: "app",
           title: act.type === 0 ? "Playing" : act.name,
           name: act.name,
-          details: act.details || act.state || "",
+          details: act.details || "",
+          state: act.state || "",
           image: imageUrl,
           smallImage: smallImageUrl,
           icon: <Gamepad2 className="w-3.5 h-3.5 text-indigo-400" />,
@@ -383,6 +383,11 @@ export default function HomeHero() {
                           {card.details}
                         </span>
                       )}
+                      {card.state && (
+                        <span className="text-[11px] text-slate-600 dark:text-slate-400 truncate transition-colors">
+                          {card.state}
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -399,7 +404,6 @@ export default function HomeHero() {
                         />
                       </div>
                       
-                      {/* Play on Spotify Button */}
                       {card.trackId && (
                         <a
                           href={`https://open.spotify.com/track/${card.trackId}`}
@@ -415,7 +419,7 @@ export default function HomeHero() {
                     </div>
                   ) : card.elapsedFormatted ? (
                     <div className="mt-2 text-[10px] font-mono text-slate-600 dark:text-slate-400 flex items-center gap-1.5 pt-2 border-t border-slate-400 dark:border-slate-800/50 transition-colors">
-                      <span>🎮</span>
+                      <span className="text-emerald-400">🎮</span>
                       <span>{card.elapsedFormatted}</span>
                     </div>
                   ) : null}
