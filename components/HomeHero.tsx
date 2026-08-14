@@ -36,24 +36,53 @@ export default function HomeHero() {
 
   const discordData = useDiscordStatus("745943593432121465");
   const prevTrackIdRef = useRef<string | null>(null);
+  const prevStartTimestampRef = useRef<number | null>(null);
 
+  // Robust real-time ticker that handles mobile throttling
   useEffect(() => {
+    let animationFrameId: number;
+    
+    const updateTimer = () => {
+      setCurrentTime(Date.now());
+      animationFrameId = requestAnimationFrame(updateTimer);
+    };
+
+    // Use requestAnimationFrame combined with an interval fallback for ultimate mobile smoothness
     const timer = setInterval(() => {
       setCurrentTime(Date.now());
-    }, 1000);
-    return () => clearInterval(timer);
+    }, 250); // Faster tick rate (250ms) makes progress smooth on mobile skips
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        setCurrentTime(Date.now()); // Immediate re-sync when user tabs back in on mobile
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(timer);
+      cancelAnimationFrame(animationFrameId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
-  // Instantly re-sync currentTime when Spotify changes tracks (skip) or updates
+  // Instantly re-sync currentTime when Spotify changes tracks (skip) or updates timestamps
   useEffect(() => {
     if (discordData?.spotify) {
       const currentTrackId = discordData.spotify.track_id;
-      if (prevTrackIdRef.current !== currentTrackId) {
+      const currentStart = discordData.spotify.timestamps?.start;
+
+      if (
+        prevTrackIdRef.current !== currentTrackId ||
+        prevStartTimestampRef.current !== currentStart
+      ) {
         prevTrackIdRef.current = currentTrackId;
+        prevStartTimestampRef.current = currentStart || null;
         setCurrentTime(Date.now());
       }
     }
-  }, [discordData?.spotify?.track_id]);
+  }, [discordData?.spotify?.track_id, discordData?.spotify?.timestamps?.start]);
 
   const getStatusConfig = () => {
     const rawStatus = discordData?.discord_status || "offline";
@@ -384,7 +413,7 @@ export default function HomeHero() {
                       </div>
                       <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-3">
                         <div
-                          className="h-full bg-emerald-400 rounded-full transition-all duration-1000 linear"
+                          className="h-full bg-emerald-400 rounded-full transition-all duration-300 ease-linear"
                           style={{ width: `${card.progress}%` }}
                         />
                       </div>
