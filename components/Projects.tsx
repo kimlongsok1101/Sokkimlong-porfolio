@@ -21,11 +21,11 @@ export default function ProjectsSection() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.3 }}
-        className="relative z-10 mb-8 sm:mb-10"
+        className="relative z-10 mb-6 sm:mb-8 lg:mb-10 px-4 sm:px-0"
       >
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-100 mb-3 sm:mb-4">{projectData.headline}</h2>
-        <p className="text-sm sm:text-base text-slate-300 max-w-3xl mx-auto mb-2 sm:mb-3 px-2 sm:px-0">{projectData.description}</p>
-        <p className="text-xs sm:text-sm text-slate-400 max-w-3xl mx-auto px-2 sm:px-0">Browse selected projects showcasing frontend, full-stack, and design work.</p>
+        <h2 className="text-xl sm:text-2xl lg:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2 sm:mb-3 lg:mb-4 transition-colors">{projectData.headline}</h2>
+        <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 max-w-3xl mx-auto mb-2 sm:mb-3 transition-colors">{projectData.description}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 max-w-3xl mx-auto transition-colors">Browse selected projects showcasing frontend, full-stack, and design work.</p>
       </motion.div>
 
       {/* Animated Box with Button */}
@@ -35,15 +35,15 @@ export default function ProjectsSection() {
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
         whileHover={{ scale: 1.05 }}
-        className="relative z-10 mt-10 sm:mt-12 mb-8 p-6 sm:p-8 rounded-lg sm:rounded-2xl bg-gradient-to-br from-indigo-600/20 to-purple-600/10 border border-indigo-500/30 hover:border-indigo-400/60 transition-colors duration-300 backdrop-blur-sm"
+        className="relative z-10 mt-8 sm:mt-10 lg:mt-12 mb-6 sm:mb-8 p-6 sm:p-8 rounded-lg sm:rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-600/20 dark:to-purple-600/10 border border-indigo-400 dark:border-indigo-500/30 hover:border-indigo-300 dark:hover:border-indigo-400/60 transition-colors duration-300 backdrop-blur-sm"
       >
         <div className="text-center">
-          <FolderKanban className="w-10 sm:w-12 h-10 sm:h-12 mx-auto mb-3 sm:mb-4 text-indigo-400" />
-          <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-slate-100 mb-2">Featured Projects</h3>
-          <p className="text-xs sm:text-sm lg:text-base text-slate-300 mb-5 sm:mb-6 px-2 sm:px-0">Explore my latest work and creative solutions</p>
+          <FolderKanban className="w-10 sm:w-12 h-10 sm:h-12 mx-auto mb-3 sm:mb-4 text-indigo-600 dark:text-indigo-400" />
+          <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-slate-900 dark:text-slate-100 mb-2 transition-colors">Featured Projects</h3>
+          <p className="text-xs sm:text-sm lg:text-base text-slate-700 dark:text-slate-300 mb-5 sm:mb-6 px-2 sm:px-0 transition-colors">Explore my latest work and creative solutions</p>
           <Link
             href="/projects"
-            className="inline-flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-2xl transition-transform duration-200 hover:scale-105 active:scale-95"
+            className="inline-flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base rounded-full bg-indigo-600 dark:bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-500 text-white font-semibold shadow-xl shadow-indigo-500/25 transition-transform duration-200 hover:scale-105 active:scale-95"
           >
             {projectData.buttonLabel ?? "View My Project"}
             <ArrowRight className="w-3.5 sm:w-4 h-3.5 sm:h-4 opacity-90" />

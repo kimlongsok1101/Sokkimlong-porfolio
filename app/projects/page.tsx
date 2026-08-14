@@ -33,7 +33,7 @@ const projectCategories = [
 
 export default function ProjectsPage() {
   return (
-    <main className="py-24 px-6 max-w-5xl mx-auto relative overflow-hidden min-h-screen flex flex-col justify-center">
+    <main className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 max-w-5xl mx-auto relative overflow-hidden min-h-screen flex flex-col justify-center">
       {/* Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -45,7 +45,7 @@ export default function ProjectsPage() {
           animate={{ opacity: 1, y: 0 }}
           whileHover="hover"
           whileTap={{ scale: 0.96 }}
-          className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-slate-900 border border-slate-800/90 text-xs font-mono text-slate-300 hover:text-white hover:border-indigo-500/40 hover:bg-slate-800/80 shadow-lg shadow-indigo-500/5 transition-colors duration-200 cursor-pointer"
+          className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800/90 text-xs font-mono text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-indigo-400 dark:hover:border-indigo-500/40 hover:bg-slate-100 dark:hover:bg-slate-800/80 shadow-lg shadow-indigo-500/5 transition-colors duration-200 cursor-pointer"
         >
           <motion.div
             variants={{
@@ -68,16 +68,16 @@ export default function ProjectsPage() {
         >
           <Sparkles className="w-3.5 h-3.5" /> Featured Works
         </motion.div>
-        <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-100 tracking-tight">
-          Select <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-sky-400 to-indigo-300">Project Type</span>
+        <h1 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight transition-colors px-4 sm:px-0">
+          Select <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 dark:from-indigo-400 via-sky-600 dark:via-sky-400 to-indigo-600 dark:to-indigo-300">Project Type</span>
         </h1>
-        <p className="text-slate-400 text-sm mt-3 max-w-md mx-auto">
+        <p className="text-slate-700 dark:text-slate-400 text-xs sm:text-sm mt-3 max-w-md mx-auto px-4 sm:px-0 transition-colors">
           Choose a section below to explore dedicated project showcases.
         </p>
       </div>
 
       {/* 3 Main Action Buttons */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 relative z-10 px-4 sm:px-0">
         {projectCategories.map((category) => {
           const Icon = category.icon;
 
@@ -90,29 +90,29 @@ export default function ProjectsPage() {
             >
               <Link
                 href={category.href}
-                className="group relative flex flex-col justify-between h-full p-8 rounded-3xl bg-slate-900/80 border border-slate-800 hover:border-indigo-500/50 shadow-xl backdrop-blur-xl transition-all duration-300 overflow-hidden"
+                className="group relative flex flex-col justify-between h-full p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-300 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500/50 shadow-lg dark:shadow-xl backdrop-blur-xl transition-all duration-300 overflow-hidden"
               >
                 <div
                   className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${category.color} opacity-60 group-hover:opacity-100 transition-opacity`}
                 />
 
                 <div>
-                  <div className="w-12 h-12 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-indigo-400 mb-6 group-hover:scale-110 group-hover:border-indigo-500/40 transition-all">
-                    <Icon className="w-6 h-6" />
+                  <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-2xl bg-slate-200 dark:bg-slate-950 border border-slate-400 dark:border-slate-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-4 sm:mb-6 group-hover:scale-110 group-hover:border-indigo-400 dark:group-hover:border-indigo-500/40 transition-all">
+                    <Icon className="w-5 sm:w-6 h-5 sm:h-6" />
                   </div>
 
-                  <h2 className="text-2xl font-bold text-slate-100 mb-2 group-hover:text-indigo-300 transition-colors">
+                  <h2 className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors">
                     {category.name}
                   </h2>
 
-                  <p className="text-slate-400 text-xs leading-relaxed">
+                  <p className="text-slate-700 dark:text-slate-400 text-xs sm:text-sm leading-relaxed transition-colors">
                     {category.description}
                   </p>
                 </div>
 
-                <div className="mt-8 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs font-semibold text-indigo-400 group-hover:text-indigo-300">
+                <div className="mt-6 sm:mt-8 pt-4 border-t border-slate-300 dark:border-slate-800/80 flex items-center justify-between text-xs font-semibold text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">
                   <span>View Projects</span>
-                  <div className="p-2 rounded-xl bg-slate-950 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                  <div className="p-2 rounded-xl bg-slate-200 dark:bg-slate-950 group-hover:bg-indigo-600 group-hover:text-white group-hover:dark:bg-indigo-600 transition-colors">
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </div>
