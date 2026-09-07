@@ -16,7 +16,6 @@ import type { Project, ProjectCategory } from "@/data/projects";
 import { PROJECT_CATEGORIES } from "@/data/projects";
 import MatrixRainWrapper from "@/components/MatrixRainWrapper";
 import ParticleGrid from "@/components/ParticleGrid";
-import Navbar from "@/components/Navbar";
 import { useNotifications } from "@/lib/useNotifications";
 import { getConfiguredAdminEmails } from "../../lib/adminEmails";
 
@@ -151,7 +150,6 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [form, setForm] = useState({ email: "", password: "" });
-  const [messageForm, setMessageForm] = useState({ name: "", email: "", content: "" });
   const [editId, setEditId] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectCategory, setProjectCategory] = useState<ProjectCategoryFilter>("All");
@@ -753,30 +751,6 @@ export default function AdminPage() {
     setLoading(false);
   };
 
-  const createMessage = async () => {
-    if (!messageForm.name || !messageForm.email || !messageForm.content) {
-      setFeedback("Please fill all message fields before creating.");
-      return;
-    }
-
-    setLoading(true);
-    const response = await fetch("/api/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(messageForm),
-    });
-    const result = await response.json();
-
-    if (!response.ok) {
-      setFeedback(result.error ?? "Unable to create message.");
-    } else if (result.data?.length) {
-      setFeedback("Message created.");
-      setMessageForm({ name: "", email: "", content: "" });
-      setMessages((current) => [result.data[0], ...current]);
-    }
-    setLoading(false);
-  };
-
   const updateMessage = async () => {
     if (!editId) {
       return;
@@ -857,10 +831,6 @@ export default function AdminPage() {
     }
   };
 
-  const handleFieldChange = (field: string, value: string) => {
-    setMessageForm((current) => ({ ...current, [field]: value }));
-  };
-
   const handleEditFieldChange = (id: string, field: string, value: string) => {
     setMessages((current) =>
       current.map((message) =>
@@ -884,6 +854,16 @@ export default function AdminPage() {
 
       pointer[path[path.length - 1]] = value;
       return { ...current, payload: nextPayload };
+    });
+  };
+
+  const selectAdminSection = (section: string) => {
+    setCurrentSection(section);
+    requestAnimationFrame(() => {
+      document.getElementById("section-editor")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     });
   };
 
@@ -1148,7 +1128,6 @@ export default function AdminPage() {
   if (authLoading) {
     return (
       <main className="admin-shell relative isolate min-h-screen overflow-x-clip bg-slate-950 text-slate-100 flex items-center justify-center px-4 pt-24 sm:px-6">
-        <Navbar />
         <AdminAtmosphere />
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -1164,7 +1143,6 @@ export default function AdminPage() {
   if (!isAdmin) {
     return (
       <main className="admin-shell relative isolate min-h-screen overflow-x-clip bg-slate-950 text-slate-100 flex items-center justify-center px-4 py-28 sm:px-6 sm:py-32">
-        <Navbar />
         <AdminAtmosphere />
         <motion.div
           initial={{ opacity: 0, y: 40, scale: 0.98 }}
@@ -1244,8 +1222,7 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="admin-shell relative isolate min-h-screen w-full min-w-0 overflow-x-clip bg-slate-950 text-slate-100 px-4 py-28 sm:px-6 sm:py-32">
-      <Navbar />
+    <main className="admin-shell relative isolate min-h-screen w-full min-w-0 overflow-x-clip bg-slate-950 text-slate-100 px-4 py-8 sm:px-6 sm:py-12">
       <AdminAtmosphere />
       <div className="mx-auto w-full min-w-0 max-w-7xl space-y-8">
         <motion.header
@@ -1302,14 +1279,14 @@ export default function AdminPage() {
           className="relative z-10 grid min-w-0 gap-8"
         >
           <div className="min-w-0 space-y-8">
-            <div className="admin-box w-full min-w-0 rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-8 shadow-xl shadow-slate-950/20">
-              <h2 className="text-2xl font-semibold text-slate-100 mb-4">Website section editor</h2>
-              <div className="flex flex-wrap gap-3 mb-6">
+            <div className="admin-box sticky top-4 z-30 w-full min-w-0 rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-6 shadow-xl shadow-slate-950/20 backdrop-blur-xl">
+              <h2 className="mb-4 text-lg font-semibold text-slate-100">Admin sections</h2>
+              <div className="flex flex-wrap gap-3">
                 {sectionOptions.map((option) => (
                   <button
                     key={option.value}
                     type="button"
-                    onClick={() => setCurrentSection(option.value)}
+                    onClick={() => selectAdminSection(option.value)}
                     className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                       currentSection === option.value
                         ? "bg-indigo-600 text-white"
@@ -1328,7 +1305,7 @@ export default function AdminPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => document.getElementById("message-management")?.scrollIntoView({ behavior: "smooth" })}
+                  onClick={() => document.getElementById("message-management-summary")?.scrollIntoView({ behavior: "smooth" })}
                   className="rounded-full bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700"
                 >
                   Visitor messages
@@ -1341,6 +1318,10 @@ export default function AdminPage() {
                   Login History
                 </button>
               </div>
+            </div>
+
+            <div className="admin-box w-full min-w-0 rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-8 shadow-xl shadow-slate-950/20">
+              <h2 className="text-2xl font-semibold text-slate-100 mb-4">Website section editor</h2>
               {renderSectionEditor()}
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-sm text-slate-400">
@@ -1779,45 +1760,6 @@ export default function AdminPage() {
 
           <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-8 shadow-xl shadow-slate-950/20">
             <div id="message-management" className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-semibold text-slate-100 mb-4">Create new message</h2>
-                <div className="space-y-4">
-                  <label className="block">
-                    <span className="text-sm text-slate-400">Name</span>
-                    <input
-                      value={messageForm.name}
-                      onChange={(e) => handleFieldChange("name", e.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-sm text-slate-400">Email</span>
-                    <input
-                      value={messageForm.email}
-                      onChange={(e) => handleFieldChange("email", e.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-sm text-slate-400">Message</span>
-                    <textarea
-                      value={messageForm.content}
-                      onChange={(e) => handleFieldChange("content", e.target.value)}
-                      rows={4}
-                      className="mt-2 w-full rounded-3xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-slate-100 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    onClick={createMessage}
-                    disabled={loading}
-                    className="rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-700"
-                  >
-                    {loading ? "Saving..." : "Create message"}
-                  </button>
-                </div>
-              </div>
-
               <div>
                 <h3 className="text-xl font-semibold text-slate-100 mb-4">Manage messages</h3>
                 {loading && (
