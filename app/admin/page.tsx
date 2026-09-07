@@ -151,6 +151,7 @@ export default function AdminPage() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaAnswer, setCaptchaAnswer] = useState("");
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [, setCooldownTick] = useState(0);
   const [adminPanelTab, setAdminPanelTab] = useState<AdminPanelTab>("editor");
   const [loginHistory, setLoginHistory] = useState<LoginHistoryRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -231,6 +232,21 @@ export default function AdminPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectCategory]);
+
+  useEffect(() => {
+    if (!cooldownUntil) return;
+
+    const interval = window.setInterval(() => {
+      if (cooldownUntil <= Date.now()) {
+        setCooldownUntil(null);
+        return;
+      }
+
+      setCooldownTick((tick) => tick + 1);
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [cooldownUntil]);
 
   // Realtime subscription to projects table for live updates when admin adds/edits/deletes
   useEffect(() => {
