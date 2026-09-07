@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { ArrowDown, Sparkles, Terminal, Code2, Database, Music, Gamepad2, ExternalLink } from "lucide-react";
 import { useEffect, useState, type MouseEvent, useRef } from "react";
 import { usePageSection } from "@/lib/usePageSection";
-import { defaultHeroSection } from "@/lib/pageSectionDefaults";
+import { defaultHeroSection, type HeroSectionPayload } from "@/lib/pageSectionDefaults";
 import { useDiscordStatus, LanyardActivity } from "@/lib/useDiscordStatus";
 
 const codeSnippet = `const developer = {
@@ -36,6 +36,9 @@ export default function HomeHero() {
 
   const discordData = useDiscordStatus("745943593432121465");
   const lastTrackIdRef = useRef<string | null>(null);
+  const { payload: heroPayload } = usePageSection("hero", defaultHeroSection);
+  const heroContent = { ...defaultHeroSection, ...heroPayload } as HeroSectionPayload;
+  const activeCodeSnippet = heroContent.codeSnippet?.trim() || codeSnippet;
 
   // High-performance ticker loop that forces immediate layout sync when mobile screen wakes up
   useEffect(() => {
@@ -202,7 +205,7 @@ export default function HomeHero() {
     setIsMounted(true);
 
     if (isMobile) {
-      setDisplayedCode(codeSnippet);
+      setDisplayedCode(activeCodeSnippet);
       return;
     }
 
@@ -216,9 +219,9 @@ export default function HomeHero() {
 
       typingInterval = window.setInterval(() => {
         currentIndex += 1;
-        setDisplayedCode(codeSnippet.slice(0, currentIndex));
+        setDisplayedCode(activeCodeSnippet.slice(0, currentIndex));
 
-        if (currentIndex >= codeSnippet.length) {
+        if (currentIndex >= activeCodeSnippet.length) {
           if (typingInterval !== null) {
             window.clearInterval(typingInterval);
             typingInterval = null;
@@ -237,7 +240,7 @@ export default function HomeHero() {
       if (typingInterval !== null) window.clearInterval(typingInterval);
       if (restartTimeout !== null) window.clearTimeout(restartTimeout);
     };
-  }, [isMobile]);
+  }, [activeCodeSnippet, isMobile]);
 
   const handleScrollToAbout = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
@@ -289,16 +292,16 @@ export default function HomeHero() {
               </div>
 
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-2">
-                <Sparkles className="w-3.5 h-3.5" /> Software Developer & Designer
+                <Sparkles className="w-3.5 h-3.5" /> {heroContent.badge}
               </div>
 
-              <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-wider transition-colors">SOKKIMLONG</h1>
-              <p className="text-indigo-600 dark:text-indigo-400 font-medium text-xs mt-1 transition-colors">SETEC Institute • MIS Year 1</p>
+              <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-wider transition-colors">{heroContent.name}</h1>
+              <p className="text-indigo-600 dark:text-indigo-400 font-medium text-xs mt-1 transition-colors">{heroContent.education}</p>
 
               <div className="mt-5 pt-4 border-t border-slate-300 dark:border-slate-800/80 w-full flex justify-around text-xs transition-colors">
                 <div>
                   <span className="block text-slate-600 dark:text-slate-400 font-medium transition-colors">Major</span>
-                  <span className="text-slate-900 dark:text-slate-200 font-bold transition-colors">MIS</span>
+                    <span className="text-slate-900 dark:text-slate-200 font-bold transition-colors">{heroContent.major}</span>
                 </div>
                 <div className="h-8 w-px bg-slate-300 dark:bg-slate-800" />
                 <div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabaseAdminClient";
 import { createSupabaseClient } from "@/lib/supabaseClient";
+import { getConfiguredAdminEmails } from "../../../../lib/adminEmails";
 
 type RateLimitEntry = {
   count: number;
@@ -270,13 +271,13 @@ export async function POST(request: NextRequest) {
   const password = typeof body.password === "string" ? body.password : "";
   const captchaAnswer = typeof body.captchaAnswer === "string" ? Number(body.captchaAnswer) : body.captchaAnswer;
   const captchaToken = typeof body.captchaToken === "string" ? body.captchaToken : "";
-  const adminEmail = (process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "").trim().toLowerCase();
+  const adminEmails = getConfiguredAdminEmails();
   const ip = getClientIp(request);
   const rateLimitKey = getRateLimitKey(email, ip);
   const supabase = createSupabaseAdminClient();
   const canPersist = Boolean(supabase);
 
-  if (!adminEmail) {
+  if (adminEmails.length === 0) {
     return NextResponse.json({ error: "Admin email is not configured." }, { status: 500 });
   }
 
@@ -299,7 +300,7 @@ export async function POST(request: NextRequest) {
     return createBlockResponse("Too many login attempts. Please wait before trying again.", localRateLimit.retryAfter);
   }
 
-  if (!email || email !== adminEmail) {
+  if (!email || !adminEmails.includes(email)) {
     if (canPersist) {
       await logAuditAttempt(supabase, email, ip, "blocked", "unauthorized_email", {
         ...baseAuditDetails,
@@ -402,7 +403,7 @@ export async function POST(request: NextRequest) {
   }
 
   const authenticatedEmail = data.user?.email?.trim().toLowerCase() ?? "";
-  if (!authenticatedEmail || authenticatedEmail !== adminEmail) {
+  if (!authenticatedEmail || !adminEmails.includes(authenticatedEmail)) {
     await authSupabase.auth.signOut();
 
     if (canPersist) {

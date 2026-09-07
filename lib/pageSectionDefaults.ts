@@ -42,6 +42,11 @@ export type ContactSectionPayload = {
 export type HeroSectionPayload = {
   status: string;
   visitorCount: number;
+  badge: string;
+  name: string;
+  education: string;
+  major: string;
+  codeSnippet: string;
 };
 
 export type PageSectionPayload =
@@ -54,6 +59,17 @@ export type PageSectionPayload =
 export const defaultHeroSection: HeroSectionPayload = {
   status: "Available for Hire",
   visitorCount: 0,
+  badge: "Software Developer & Designer",
+  name: "SOKKIMLONG",
+  education: "SETEC Institute • MIS Year 1",
+  major: "MIS",
+  codeSnippet: `const developer = {
+  name: "Sokkimlong",
+  role: "Full-Stack Software Developer",
+  education: "Management Information Systems (MIS)",
+  skills: ["Next.js", "TypeScript", "Tailwind", "PostgreSQL"],
+  status: "Available for Hire"
+};`,
 };
 
 export const defaultAboutSection: AboutSectionPayload = {

@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabaseClient";
+import { getConfiguredAdminEmails } from "../../../lib/adminEmails";
 
-const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "";
+const ADMIN_EMAILS = getConfiguredAdminEmails();
 
 type LoginHistoryRecord = {
   id: string;
@@ -57,7 +58,7 @@ export default function AdminHistoryPage() {
     }
   };
 
-  const isAdmin = sessionEmail?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  const isAdmin = Boolean(sessionEmail && ADMIN_EMAILS.includes(sessionEmail.toLowerCase()));
 
   const getBrowserLoginDetails = async () => {
     const deviceModel = getSimpleDeviceModel(typeof navigator !== "undefined" ? navigator.userAgent : null);
@@ -128,7 +129,7 @@ export default function AdminHistoryPage() {
         const email = sessionData?.user?.email ?? null;
         setSessionEmail(email);
 
-        if (event === "SIGNED_IN" && email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+        if (event === "SIGNED_IN" && email && ADMIN_EMAILS.includes(email.toLowerCase())) {
           tryPostLoginRecord(email)
             .then(() => loadLoginHistory())
             .catch(() => {

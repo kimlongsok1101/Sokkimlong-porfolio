@@ -18,10 +18,11 @@ import MatrixRainWrapper from "@/components/MatrixRainWrapper";
 import ParticleGrid from "@/components/ParticleGrid";
 import Navbar from "@/components/Navbar";
 import { useNotifications } from "@/lib/useNotifications";
+import { getConfiguredAdminEmails } from "../../lib/adminEmails";
 
 type ProjectCategoryFilter = ProjectCategory | "All";
 
-const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "";
+const ADMIN_EMAILS = getConfiguredAdminEmails();
 
 type Message = {
   id: string;
@@ -212,7 +213,7 @@ export default function AdminPage() {
   };
 
   const isAdmin = useMemo(
-    () => sessionEmail?.toLowerCase() === ADMIN_EMAIL.toLowerCase(),
+    () => Boolean(sessionEmail && ADMIN_EMAILS.includes(sessionEmail.toLowerCase())),
     [sessionEmail]
   );
   const cooldownSeconds = cooldownUntil
@@ -388,7 +389,9 @@ export default function AdminPage() {
     const saved = getSavedSection(currentSection);
     setSectionEditor({
       section: currentSection,
-      payload: saved ? saved.payload : getDefaultSectionPayload(currentSection),
+      payload: saved
+        ? { ...getDefaultSectionPayload(currentSection), ...saved.payload }
+        : getDefaultSectionPayload(currentSection),
     });
   }, [currentSection, sections]);
 
@@ -477,7 +480,10 @@ export default function AdminPage() {
       setSections(result.data);
       const matched = result.data.find((item: PageSection) => item.section === currentSection);
       if (matched) {
-        setSectionEditor({ section: currentSection, payload: matched.payload });
+        setSectionEditor({
+          section: currentSection,
+          payload: { ...getDefaultSectionPayload(currentSection), ...matched.payload },
+        });
       }
     }
     setLoading(false);
@@ -661,7 +667,7 @@ export default function AdminPage() {
     const now = Date.now();
     if (loading || (cooldownUntil && now < cooldownUntil)) return;
 
-    if (sessionEmail?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+    if (sessionEmail && ADMIN_EMAILS.includes(sessionEmail.toLowerCase())) {
       setFeedback("Already signed in as admin.");
       return;
     }
@@ -720,7 +726,7 @@ export default function AdminPage() {
       setCaptchaToken(null);
       setCaptchaAnswer("");
       setCooldownUntil(null);
-      if (userEmail.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+      if (ADMIN_EMAILS.includes(userEmail.toLowerCase())) {
         loadMessages();
         loadSections();
       }
@@ -934,8 +940,11 @@ export default function AdminPage() {
         ];
       case "hero":
         return [
-          { label: "Status", path: ["status"] },
-          { label: "Visitor Count", path: ["visitorCount"] },
+          { label: "Hero Badge", path: ["badge"] },
+          { label: "Hero Name", path: ["name"] },
+          { label: "Education", path: ["education"] },
+          { label: "Major", path: ["major"] },
+          { label: "Developer Code", path: ["codeSnippet"], multiline: true },
         ];
       default:
         return [];
