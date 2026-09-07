@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Terminal, Menu, X, Code2, Bell, Moon, Sun } from "lucide-react";
+import { useNotifications } from "@/lib/useNotifications";
 
 const NotificationsPanel = dynamic(() => import("@/components/NotificationsPanel"), {
   ssr: false,
@@ -26,6 +27,7 @@ export default function Navbar() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [mounted, setMounted] = useState(false);
+  const { unreadCount } = useNotifications();
 
   useEffect(() => {
     let ticking = false;
@@ -201,6 +203,11 @@ export default function Navbar() {
             aria-label="Notifications"
           >
             <Bell className="w-4 h-4" />
+            {unreadCount > 0 && (
+              <span className="absolute -right-2 -top-2 flex min-w-7 h-7 items-center justify-center rounded-full bg-indigo-600 px-1.5 text-xs font-bold text-white shadow-lg shadow-indigo-500/30">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
           </button>
 
           <a
@@ -271,9 +278,9 @@ export default function Navbar() {
                   setNotificationsOpen(true);
                   setMobileMenuOpen(false);
                 }}
-                className="py-2 px-3 rounded-lg bg-slate-100 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors flex items-center justify-between"
+                className="relative py-2 px-3 rounded-lg bg-slate-100 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors flex items-center justify-between"
               >
-                <span>Notifications</span>
+                <span>Notifications{unreadCount > 0 ? ` (${unreadCount > 99 ? "99+" : unreadCount})` : ""}</span>
               </button>
 
               <a

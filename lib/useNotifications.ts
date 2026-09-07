@@ -27,6 +27,20 @@ function normalizeNotificationRow(row: any): Notification {
   };
 }
 
+async function getNotificationDeleteHeaders() {
+  const supabase = createSupabaseClient();
+  if (!supabase) return null;
+
+  const { data } = await supabase.auth.getSession();
+  const accessToken = data.session?.access_token;
+  if (!accessToken) return null;
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${accessToken}`,
+  };
+}
+
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -149,11 +163,16 @@ export function useNotifications() {
   }, []);
 
   const deleteNotification = useCallback(async (id: string) => {
-    const supabase = createSupabaseClient();
-    if (!supabase) return;
-
     try {
-      await supabase.from("notifications").delete().eq("id", id);
+      const headers = await getNotificationDeleteHeaders();
+      if (!headers) throw new Error("Admin authentication required");
+
+      const response = await fetch("/api/notifications", {
+        method: "DELETE",
+        headers,
+        body: JSON.stringify({ ids: [id] }),
+      });
+      if (!response.ok) throw new Error((await response.json()).error ?? "Failed to delete notification");
 
       setNotifications((prev) => prev.filter((n) => n.id !== id));
       setUnreadCount((prev) => {
@@ -166,11 +185,19 @@ export function useNotifications() {
   }, [notifications]);
 
   const deleteNotifications = useCallback(async (ids: string[]) => {
-    const supabase = createSupabaseClient();
-    if (!supabase || ids.length === 0) return;
+    if (ids.length === 0) return;
 
     try {
-      await supabase.from("notifications").delete().in("id", ids);
+      const headers = await getNotificationDeleteHeaders();
+      if (!headers) throw new Error("Admin authentication required");
+
+      const response = await fetch("/api/notifications", {
+        method: "DELETE",
+        headers,
+        body: JSON.stringify({ ids }),
+      });
+      if (!response.ok) throw new Error((await response.json()).error ?? "Failed to delete notifications");
+
       setNotifications((prev) => prev.filter((notification) => !ids.includes(notification.id)));
       setUnreadCount((prev) =>
         Math.max(0, prev - notifications.filter((notification) => ids.includes(notification.id) && !notification.read).length)
@@ -181,11 +208,17 @@ export function useNotifications() {
   }, [notifications]);
 
   const deleteAllNotifications = useCallback(async () => {
-    const supabase = createSupabaseClient();
-    if (!supabase) return;
-
     try {
-      await supabase.from("notifications").delete().neq("id", "");
+      const headers = await getNotificationDeleteHeaders();
+      if (!headers) throw new Error("Admin authentication required");
+
+      const response = await fetch("/api/notifications", {
+        method: "DELETE",
+        headers,
+        body: JSON.stringify({ all: true }),
+      });
+      if (!response.ok) throw new Error((await response.json()).error ?? "Failed to clear notifications");
+
       setNotifications([]);
       setUnreadCount(0);
     } catch (error) {

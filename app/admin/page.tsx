@@ -609,14 +609,17 @@ export default function AdminPage() {
       setFeedback(message);
 
       // Notify users about the project update with project image and category
-      const projectId = result.data?.[0]?.id || projectEditId;
+      const savedProject = result.data?.[0];
+      const projectId = savedProject?.id || projectEditId;
+      const projectImage = savedProject?.image || projectForm.image;
+      const projectCategory = savedProject?.category || projectForm.category;
       const notificationSent = await sendNotification(
         "project",
-        projectForm.title,
-        projectForm.description,
+        `${projectEditId ? "Project updated" : "New project"} [${projectCategory}]: ${savedProject?.title || projectForm.title}`,
+        `Category: ${projectCategory}. ${projectForm.description}`,
         projectId,
-        projectForm.image,
-        projectForm.category
+        projectImage,
+        projectCategory
       );
 
       if (!notificationSent) {
@@ -900,8 +903,8 @@ export default function AdminPage() {
       // Notify users about the section update
       await sendNotification(
         "section",
-        `${sectionEditor.section.charAt(0).toUpperCase() + sectionEditor.section.slice(1)} Updated`,
-        `The ${sectionEditor.section} section has been updated.`
+        `Page updated: ${sectionEditor.section.charAt(0).toUpperCase() + sectionEditor.section.slice(1)}`,
+        `Category: ${sectionEditor.section}. The admin updated this page section.`
       );
       
       loadSections();

@@ -138,6 +138,20 @@ create policy "Allow delete notifications"
 
 -- Create indexes for better query performance
 create index if not exists idx_notifications_created_at on public.notifications (created_at desc);
+
+-- Enable realtime updates for the navbar notification badge.
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'notifications'
+  ) then
+    alter publication supabase_realtime add table public.notifications;
+  end if;
+end $$;
 create index if not exists idx_notifications_read on public.notifications (read);
 
 create table if not exists public.admin_login_blocks (
