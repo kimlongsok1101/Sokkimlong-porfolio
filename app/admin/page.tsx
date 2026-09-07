@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { createSupabaseClient } from "@/lib/supabaseClient";
 import { sendNotification } from "@/lib/sendNotification";
 import {
@@ -13,6 +14,9 @@ import {
 import { resolveIcon, ICON_MAP, DefaultSkillIcon } from "@/components/Skills";
 import type { Project, ProjectCategory } from "@/data/projects";
 import { PROJECT_CATEGORIES } from "@/data/projects";
+import MatrixRainWrapper from "@/components/MatrixRainWrapper";
+import ParticleGrid from "@/components/ParticleGrid";
+import Navbar from "@/components/Navbar";
 
 type ProjectCategoryFilter = ProjectCategory | "All";
 
@@ -63,6 +67,12 @@ type LoginHistoryRecord = {
   created_at: string | null;
 };
 
+type DeleteTarget = {
+  type: "project" | "message" | "history";
+  id: string;
+  label: string;
+};
+
 const getMapsUrl = (location: string | null | undefined) => {
   if (!location) return null;
   const trimmed = String(location).trim();
@@ -108,6 +118,22 @@ function getDefaultSectionPayload(section: string) {
     default:
       return {};
   }
+}
+
+function AdminAtmosphere() {
+  return (
+    <>
+      <MatrixRainWrapper />
+      <ParticleGrid />
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_55%_at_50%_0%,#000_55%,transparent_100%)]" />
+      <motion.div
+        aria-hidden="true"
+        animate={{ scale: [1, 1.18, 1], opacity: [0.12, 0.24, 0.12] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none fixed left-1/2 top-0 z-0 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/3 rounded-full bg-indigo-600/20 blur-[130px]"
+      />
+    </>
+  );
 }
 
 export default function AdminPage() {
@@ -156,6 +182,7 @@ export default function AdminPage() {
   const [loginHistory, setLoginHistory] = useState<LoginHistoryRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [deletingHistoryId, setDeletingHistoryId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 
     const selectedImage = imageFiles.find((image) => image.url === projectForm.image) ?? null;
 
@@ -570,6 +597,10 @@ export default function AdminPage() {
     setLoading(false);
   };
 
+  const requestDelete = (target: DeleteTarget) => {
+    setDeleteTarget(target);
+  };
+
   const signIn = async () => {
     const now = Date.now();
     if (loading || (cooldownUntil && now < cooldownUntil)) return;
@@ -734,6 +765,21 @@ export default function AdminPage() {
       setMessages((current) => current.filter((message) => message.id !== id));
     }
     setLoading(false);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    const target = deleteTarget;
+    setDeleteTarget(null);
+
+    if (target.type === "project") {
+      await deleteProject(target.id);
+    } else if (target.type === "message") {
+      await deleteMessage(target.id);
+    } else {
+      await deleteLoginHistoryRecord(target.id);
+    }
   };
 
   const handleFieldChange = (field: string, value: string) => {
@@ -924,7 +970,7 @@ export default function AdminPage() {
                   const GroupIcon = resolveIcon(group.icon);
                   return (
                     <div key={gIdx} className="rounded-2xl border border-slate-800 p-4 bg-slate-950/80">
-                      <div className="flex items-center justify-between gap-3 mb-3">
+                      <div className="flex flex-col gap-3 mb-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex-1">
                           <label className="block">
                             <span className="text-sm text-slate-400">Group Category</span>
@@ -935,7 +981,7 @@ export default function AdminPage() {
                             <input value={group.description} onChange={(e) => updateGroupField(gIdx, "description", e.target.value)} className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-900 px-3 py-2 text-slate-100" />
                           </label>
                         </div>
-                        <div className="w-44">
+                        <div className="w-full sm:w-44">
                           <label className="block">
                             <span className="text-sm text-slate-400">Group Icon</span>
                             <div className="mt-2 flex items-center gap-2">
@@ -956,10 +1002,10 @@ export default function AdminPage() {
                         {(group.skills || []).map((skill: any, sIdx: number) => {
                           const SkillPreview = resolveIcon(skill.icon);
                           return (
-                            <div key={sIdx} className="grid grid-cols-12 gap-2 items-center">
-                              <input className="col-span-4 rounded-2xl bg-slate-900 px-3 py-2 border border-slate-800 text-slate-100" value={skill.name} onChange={(e) => updateSkillField(gIdx, sIdx, "name", e.target.value)} />
-                              <input className="col-span-2 rounded-2xl bg-slate-900 px-3 py-2 border border-slate-800 text-slate-100" value={skill.level} onChange={(e) => updateSkillField(gIdx, sIdx, "level", e.target.value)} />
-                              <div className="col-span-4 flex items-center gap-2">
+                            <div key={sIdx} className="grid grid-cols-1 gap-2 items-center sm:grid-cols-12">
+                              <input className="col-span-1 sm:col-span-4 rounded-2xl bg-slate-900 px-3 py-2 border border-slate-800 text-slate-100" value={skill.name} onChange={(e) => updateSkillField(gIdx, sIdx, "name", e.target.value)} />
+                              <input className="col-span-1 sm:col-span-2 rounded-2xl bg-slate-900 px-3 py-2 border border-slate-800 text-slate-100" value={skill.level} onChange={(e) => updateSkillField(gIdx, sIdx, "level", e.target.value)} />
+                              <div className="col-span-1 sm:col-span-4 flex items-center gap-2">
                                 <select className="flex-1 rounded-2xl bg-slate-900 px-3 py-2 border border-slate-800 text-slate-100" value={skill.icon ?? "ReactIcon"} onChange={(e) => updateSkillField(gIdx, sIdx, "icon", e.target.value)}>
                                   {iconOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
                                 </select>
@@ -967,7 +1013,7 @@ export default function AdminPage() {
                                   <SkillPreview className="w-5 h-5 text-slate-100" />
                                 </div>
                               </div>
-                              <div className="col-span-2 flex gap-2">
+                              <div className="col-span-1 sm:col-span-2 flex gap-2">
                                 <button type="button" onClick={() => removeSkill(gIdx, sIdx)} className="rounded-2xl bg-rose-500 px-3 py-2 text-xs font-semibold text-white">Remove</button>
                               </div>
                             </div>
@@ -1023,18 +1069,33 @@ export default function AdminPage() {
 
   if (authLoading) {
     return (
-      <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-6">
-        <div className="rounded-3xl border border-slate-800/90 bg-slate-900/80 p-10 shadow-xl">
+      <main className="admin-shell relative isolate min-h-screen overflow-hidden bg-slate-950 text-slate-100 flex items-center justify-center px-6 pt-24">
+        <Navbar />
+        <AdminAtmosphere />
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative z-10 rounded-3xl border border-slate-800/90 bg-slate-900/80 p-10 shadow-xl backdrop-blur-xl"
+        >
           Loading admin auth state...
-        </div>
+        </motion.div>
       </main>
     );
   }
 
   if (!isAdmin) {
     return (
-      <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-6">
-        <div className="w-full max-w-xl rounded-3xl border border-slate-800/90 bg-slate-900/90 p-10 shadow-2xl shadow-black/30">
+      <main className="admin-shell relative isolate min-h-screen overflow-hidden bg-slate-950 text-slate-100 flex items-center justify-center px-4 py-28 sm:px-6 sm:py-32">
+        <Navbar />
+        <AdminAtmosphere />
+        <motion.div
+          initial={{ opacity: 0, y: 40, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ type: "spring", stiffness: 90, damping: 18 }}
+          whileHover={{ y: -6 }}
+          className="relative z-10 w-full max-w-xl rounded-3xl border border-slate-800/90 bg-slate-900/90 p-10 shadow-2xl shadow-black/30 backdrop-blur-xl"
+        >
+          <div className="mb-8 h-1.5 w-24 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
           <h1 className="text-3xl font-extrabold mb-4 text-slate-100">Admin Login</h1>
           <p className="text-sm text-slate-400 mb-8">
             Sign in with the admin account to manage visitor messages and website sections. Only the configured admin email may access this dashboard.
@@ -1094,15 +1155,22 @@ export default function AdminPage() {
                   ? "Verify & sign in"
                   : "Sign in as admin"}
           </button>
-        </div>
+        </motion.div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10">
+    <main className="admin-shell relative isolate min-h-screen overflow-hidden bg-slate-950 text-slate-100 px-4 py-28 sm:px-6 sm:py-32">
+      <Navbar />
+      <AdminAtmosphere />
       <div className="mx-auto max-w-7xl space-y-8">
-        <header className="rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-2xl shadow-slate-950/30">
+        <motion.header
+          initial={{ opacity: 0, y: -28 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 80, damping: 16 }}
+          className="relative z-10 rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-2xl shadow-slate-950/30 backdrop-blur-xl"
+        >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-sm uppercase tracking-[0.25em] text-indigo-300">Admin Dashboard</p>
@@ -1141,11 +1209,17 @@ export default function AdminPage() {
               {feedback}
             </div>
           )}
-        </header>
+        </motion.header>
 
-        <section id="section-editor" className="grid gap-8 xl:grid-cols-[1fr_0.9fr]">
+        <motion.section
+          id="section-editor"
+          initial={{ opacity: 0, y: 28 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12, duration: 0.55, ease: "easeOut" }}
+          className="relative z-10 grid gap-8 xl:grid-cols-[1fr_0.9fr]"
+        >
           <div className="space-y-8">
-            <div className="rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
+            <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
               <h2 className="text-2xl font-semibold text-slate-100 mb-4">Website section editor</h2>
               <div className="flex flex-wrap gap-3 mb-6">
                 {sectionOptions.map((option) => (
@@ -1179,7 +1253,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
+            <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
               <div className="flex items-center justify-between mb-4 gap-3 flex-col sm:flex-row">
                 <div>
                   <h2 className="text-2xl font-semibold text-slate-100">Visitor messages</h2>
@@ -1206,7 +1280,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
+            <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
               <div className="flex items-center justify-between mb-4 gap-3 flex-col sm:flex-row">
                 <div>
                   <h2 className="text-2xl font-semibold text-slate-100">Login History</h2>
@@ -1259,7 +1333,13 @@ export default function AdminPage() {
                         <div className="flex items-end justify-end">
                           <button
                             type="button"
-                            onClick={() => deleteLoginHistoryRecord(record.id)}
+                            onClick={() =>
+                              requestDelete({
+                                type: "history",
+                                id: record.id,
+                                label: record.email || record.ip || "this login record",
+                              })
+                            }
                             disabled={deletingHistoryId === record.id}
                             className="rounded-2xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
@@ -1277,7 +1357,7 @@ export default function AdminPage() {
               )}
             </div>
 
-            <div className="rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
+            <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
               <div className="flex items-center justify-between mb-4 gap-3 flex-col sm:flex-row">
                 <div>
                   <h2 className="text-2xl font-semibold text-slate-100">Project manager</h2>
@@ -1468,7 +1548,13 @@ export default function AdminPage() {
                                 </a>
                               <button
                                 type="button"
-                                onClick={() => deleteProject(project.id)}
+                                onClick={() =>
+                                  requestDelete({
+                                    type: "project",
+                                    id: project.id,
+                                    label: project.title,
+                                  })
+                                }
                                 className="rounded-2xl bg-rose-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-rose-400"
                               >
                                 Delete
@@ -1484,7 +1570,7 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
+          <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
             <div id="message-management" className="space-y-6">
               <div>
                 <h2 className="text-2xl font-semibold text-slate-100 mb-4">Create new message</h2>
@@ -1581,7 +1667,13 @@ export default function AdminPage() {
                             </button>
                             <button
                               type="button"
-                              onClick={() => deleteMessage(message.id)}
+                              onClick={() =>
+                                requestDelete({
+                                  type: "message",
+                                  id: message.id,
+                                  label: message.name || message.email || "this message",
+                                })
+                              }
                               className="rounded-2xl bg-rose-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-400"
                             >
                               Delete
@@ -1604,8 +1696,67 @@ export default function AdminPage() {
               </div>
             </div>
           </div>
-        </section>
+        </motion.section>
       </div>
+
+      <AnimatePresence>
+        {deleteTarget && (
+          <motion.div
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setDeleteTarget(null)}
+          >
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-dialog-title"
+              className="w-full max-w-md rounded-3xl border border-rose-500/30 bg-slate-900 p-6 shadow-2xl shadow-rose-950/30"
+              initial={{ opacity: 0, y: 20, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.97 }}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="mb-5 flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-rose-300">Destructive action</p>
+                  <h2 id="delete-dialog-title" className="mt-2 text-2xl font-bold text-slate-100">
+                    Delete this item?
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  aria-label="Close delete confirmation"
+                  onClick={() => setDeleteTarget(null)}
+                  className="rounded-xl bg-slate-800 px-3 py-2 text-slate-300 hover:bg-slate-700 hover:text-white"
+                >
+                  X
+                </button>
+              </div>
+              <p className="text-sm leading-6 text-slate-400">
+                You are about to permanently delete <span className="font-semibold text-slate-200">{deleteTarget.label}</span>. This action cannot be undone.
+              </p>
+              <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(null)}
+                  className="rounded-2xl bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDelete}
+                  className="rounded-2xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white hover:bg-rose-500"
+                >
+                  Delete permanently
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

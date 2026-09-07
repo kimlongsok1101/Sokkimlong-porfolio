@@ -105,6 +105,11 @@ export default function Navbar() {
     const targetId = href.replace("#", "");
     const targetElement = document.getElementById(targetId);
 
+    if (!targetElement && window.location.pathname !== "/") {
+      window.location.href = `/${href}`;
+      return;
+    }
+
     // 2. Small delay to let the menu close animation start before scrolling
     setTimeout(() => {
       if (targetElement) {
@@ -118,7 +123,10 @@ export default function Navbar() {
   };
 
   return (
-    <header
+    <motion.header
+      initial={{ opacity: 0, y: -24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, ease: "easeOut" }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
           ? "py-3 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-2xl shadow-slate-500/5 dark:shadow-indigo-950/10"
@@ -282,6 +290,6 @@ export default function Navbar() {
 
       {/* Notifications Panel */}
       <NotificationsPanel isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
-    </header>
+    </motion.header>
   );
 }
