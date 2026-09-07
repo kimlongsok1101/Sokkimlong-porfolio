@@ -92,6 +92,36 @@ html.light {
   outline-offset: 3px;
 }
 
+@media (max-width: 768px) {
+  .admin-box {
+    content-visibility: auto;
+    contain-intrinsic-size: 420px;
+    animation: none;
+    transition: none;
+  }
+
+  .admin-box:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .admin-shell button,
+  .admin-shell a {
+    transition: none;
+  }
+
+  .admin-shell button:not(:disabled):hover,
+  .admin-shell a:hover {
+    transform: none;
+    filter: none;
+  }
+
+  .admin-grid-overlay,
+  .admin-glow {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .admin-box,
   .admin-shell button,

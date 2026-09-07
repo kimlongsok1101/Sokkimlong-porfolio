@@ -127,12 +127,12 @@ function AdminAtmosphere() {
     <>
       <MatrixRainWrapper />
       <ParticleGrid />
-      <div className="pointer-events-none fixed inset-0 z-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_55%_at_50%_0%,#000_55%,transparent_100%)]" />
+      <div className="admin-grid-overlay pointer-events-none fixed inset-0 z-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_55%_at_50%_0%,#000_55%,transparent_100%)]" />
       <motion.div
         aria-hidden="true"
         animate={{ scale: [1, 1.18, 1], opacity: [0.12, 0.24, 0.12] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none fixed left-1/2 top-0 z-0 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/3 rounded-full bg-indigo-600/20 blur-[130px]"
+        className="admin-glow pointer-events-none fixed left-1/2 top-0 z-0 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/3 rounded-full bg-indigo-600/20 blur-[130px]"
       />
     </>
   );
