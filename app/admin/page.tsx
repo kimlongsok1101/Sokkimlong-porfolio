@@ -1117,7 +1117,7 @@ export default function AdminPage() {
     const fields = getSectionEditorFields();
 
     return (
-      <div className="space-y-4">
+      <div className="min-w-0 space-y-4">
         {fields.map((field) => {
           const value = sectionEditor.payload[field.path[0]] as string | undefined;
           return (
@@ -1146,13 +1146,13 @@ export default function AdminPage() {
 
   if (authLoading) {
     return (
-      <main className="admin-shell relative isolate min-h-screen overflow-hidden bg-slate-950 text-slate-100 flex items-center justify-center px-6 pt-24">
+      <main className="admin-shell relative isolate min-h-screen overflow-x-clip bg-slate-950 text-slate-100 flex items-center justify-center px-4 pt-24 sm:px-6">
         <Navbar />
         <AdminAtmosphere />
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative z-10 rounded-3xl border border-slate-800/90 bg-slate-900/80 p-10 shadow-xl backdrop-blur-xl"
+          className="relative z-10 rounded-3xl border border-slate-800/90 bg-slate-900/80 p-6 sm:p-10 shadow-xl backdrop-blur-xl"
         >
           Loading admin auth state...
         </motion.div>
@@ -1162,7 +1162,7 @@ export default function AdminPage() {
 
   if (!isAdmin) {
     return (
-      <main className="admin-shell relative isolate min-h-screen overflow-hidden bg-slate-950 text-slate-100 flex items-center justify-center px-4 py-28 sm:px-6 sm:py-32">
+      <main className="admin-shell relative isolate min-h-screen overflow-x-clip bg-slate-950 text-slate-100 flex items-center justify-center px-4 py-28 sm:px-6 sm:py-32">
         <Navbar />
         <AdminAtmosphere />
         <motion.div
@@ -1170,7 +1170,7 @@ export default function AdminPage() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ type: "spring", stiffness: 90, damping: 18 }}
           whileHover={{ y: -6 }}
-          className="relative z-10 w-full max-w-xl rounded-3xl border border-slate-800/90 bg-slate-900/90 p-10 shadow-2xl shadow-black/30 backdrop-blur-xl"
+          className="relative z-10 w-full max-w-xl rounded-3xl border border-slate-800/90 bg-slate-900/90 p-6 sm:p-10 shadow-2xl shadow-black/30 backdrop-blur-xl"
         >
           <div className="mb-8 h-1.5 w-24 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
           <h1 className="text-3xl font-extrabold mb-4 text-slate-100">Admin Login</h1>
@@ -1243,22 +1243,22 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="admin-shell relative isolate min-h-screen overflow-hidden bg-slate-950 text-slate-100 px-4 py-28 sm:px-6 sm:py-32">
+    <main className="admin-shell relative isolate min-h-screen w-full min-w-0 overflow-x-clip bg-slate-950 text-slate-100 px-4 py-28 sm:px-6 sm:py-32">
       <Navbar />
       <AdminAtmosphere />
-      <div className="mx-auto max-w-7xl space-y-8">
+      <div className="mx-auto w-full min-w-0 max-w-7xl space-y-8">
         <motion.header
           initial={{ opacity: 0, y: -28 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 80, damping: 16 }}
-          className="relative z-10 rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-2xl shadow-slate-950/30 backdrop-blur-xl"
+          className="relative z-10 w-full min-w-0 rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-8 shadow-2xl shadow-slate-950/30 backdrop-blur-xl"
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-sm uppercase tracking-[0.25em] text-indigo-300">Admin Dashboard</p>
-              <h1 className="mt-3 text-4xl font-extrabold text-slate-100">Manage content & visitor messages</h1>
-              <p className="mt-2 text-slate-400 max-w-2xl">
-                Logged in as <span className="text-indigo-300">{sessionEmail}</span>. Edit homepage sections and visitor messages with live realtime updates.
+              <h1 className="mt-3 text-2xl sm:text-4xl font-extrabold text-slate-100">Manage content & visitor messages</h1>
+              <p className="mt-2 max-w-2xl break-words text-slate-400">
+                Logged in as <span className="break-all text-indigo-300">{sessionEmail}</span>. Edit homepage sections and visitor messages with live realtime updates.
               </p>
             </div>
 
@@ -1298,10 +1298,10 @@ export default function AdminPage() {
           initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.12, duration: 0.55, ease: "easeOut" }}
-          className="relative z-10 grid gap-8 xl:grid-cols-[1fr_0.9fr]"
+          className="relative z-10 grid min-w-0 gap-8"
         >
-          <div className="space-y-8">
-            <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
+          <div className="min-w-0 space-y-8">
+            <div className="admin-box w-full min-w-0 rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-8 shadow-xl shadow-slate-950/20">
               <h2 className="text-2xl font-semibold text-slate-100 mb-4">Website section editor</h2>
               <div className="flex flex-wrap gap-3 mb-6">
                 {sectionOptions.map((option) => (
@@ -1335,7 +1335,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
+            <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-8 shadow-xl shadow-slate-950/20">
               <div className="flex items-center justify-between mb-4 gap-3 flex-col sm:flex-row">
                 <div>
                   <h2 className="text-2xl font-semibold text-slate-100">Visitor messages</h2>
@@ -1362,7 +1362,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
+            <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-8 shadow-xl shadow-slate-950/20">
               <div className="flex flex-col gap-4 border-b border-slate-800/80 pb-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-2xl font-semibold text-slate-100">Notifications</h2>
@@ -1442,8 +1442,8 @@ export default function AdminPage() {
                           </span>
                           {!notification.read && <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-300">Unread</span>}
                         </div>
-                        <h3 className="mt-2 font-semibold text-slate-100">{notification.title}</h3>
-                        <p className="mt-1 text-sm text-slate-400">{notification.description}</p>
+                        <h3 className="mt-2 break-words font-semibold text-slate-100">{notification.title}</h3>
+                        <p className="mt-1 break-words text-sm text-slate-400">{notification.description}</p>
                         <p className="mt-2 text-xs text-slate-500">{new Date(notification.created_at).toLocaleString()}</p>
                       </div>
                       <button
@@ -1465,7 +1465,7 @@ export default function AdminPage() {
               )}
             </div>
 
-            <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
+            <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-8 shadow-xl shadow-slate-950/20">
               <div className="flex items-center justify-between mb-4 gap-3 flex-col sm:flex-row">
                 <div>
                   <h2 className="text-2xl font-semibold text-slate-100">Login History</h2>
@@ -1495,7 +1495,7 @@ export default function AdminPage() {
                       <div className="grid gap-4 sm:grid-cols-4">
                         <div>
                           <p className="text-sm text-slate-400">Connection IP</p>
-                          <p className="text-slate-100 text-sm font-semibold">{record.ip || "Unknown IP"}</p>
+                          <p className="break-all text-slate-100 text-sm font-semibold">{record.ip || "Unknown IP"}</p>
                           {getMapsUrl(record.deviceLocation) ? (
                             <a
                               href={getMapsUrl(record.deviceLocation)!}
@@ -1509,11 +1509,11 @@ export default function AdminPage() {
                         </div>
                         <div>
                           <p className="text-sm text-slate-400">Device</p>
-                          <p className="text-slate-100 text-sm font-semibold">{record.deviceModel || "Unknown device"}</p>
+                          <p className="break-words text-slate-100 text-sm font-semibold">{record.deviceModel || "Unknown device"}</p>
                         </div>
                         <div>
                           <p className="text-sm text-slate-400">Status</p>
-                          <p className="text-slate-100 text-sm font-semibold">{record.status}</p>
+                          <p className="break-words text-slate-100 text-sm font-semibold">{record.status}</p>
                         </div>
                         <div className="flex items-end justify-end">
                           <button
@@ -1533,7 +1533,7 @@ export default function AdminPage() {
                         </div>
                         <div>
                           <p className="text-sm text-slate-400">Date / time</p>
-                          <p className="text-slate-100 text-sm font-semibold">{record.created_at ? new Date(record.created_at).toLocaleString() : "Unknown"}</p>
+                          <p className="break-words text-slate-100 text-sm font-semibold">{record.created_at ? new Date(record.created_at).toLocaleString() : "Unknown"}</p>
                         </div>
                       </div>
                     </div>
@@ -1542,7 +1542,7 @@ export default function AdminPage() {
               )}
             </div>
 
-            <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
+            <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-8 shadow-xl shadow-slate-950/20">
               <div className="flex items-center justify-between mb-4 gap-3 flex-col sm:flex-row">
                 <div>
                   <h2 className="text-2xl font-semibold text-slate-100">Project manager</h2>
@@ -1566,7 +1566,7 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
+              <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
                 <div className="space-y-4">
                   <label className="block">
                     <span className="text-sm text-slate-400">Title</span>
@@ -1643,13 +1643,13 @@ export default function AdminPage() {
                   {selectedImage ? (
                     <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-3">
                       <span className="text-sm text-slate-400">Selected image:</span>
-                      <div className="mt-2 flex items-center gap-3">
+                        <div className="mt-2 flex min-w-0 items-center gap-3">
                         <img
                           src={selectedImage.url}
                           alt={selectedImage.name}
                           className="h-20 w-20 rounded-2xl object-cover border border-slate-800"
                         />
-                        <div className="truncate">
+                        <div className="min-w-0 flex-1">
                           <p className="text-slate-100 text-sm font-semibold">{selectedImage.name}</p>
                           <p className="text-slate-400 text-xs truncate">{selectedImage.url}</p>
                         </div>
@@ -1709,13 +1709,13 @@ export default function AdminPage() {
                           key={project.id}
                           className="rounded-3xl border border-slate-800/80 bg-slate-950/80 p-5"
                         >
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0 flex-1">
                               <p className="text-sm uppercase tracking-[0.2em] text-slate-500">{project.category}</p>
-                              <h3 className="text-xl font-semibold text-slate-100">{project.title}</h3>
-                              <p className="text-slate-400 text-sm mt-1">{project.description}</p>
+                              <h3 className="break-words text-xl font-semibold text-slate-100">{project.title}</h3>
+                              <p className="break-words text-slate-400 text-sm mt-1">{project.description}</p>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
                               <button
                                 type="button"
                                 onClick={() => startProjectEdit(project)}
@@ -1755,7 +1755,7 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
+          <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-8 shadow-xl shadow-slate-950/20">
             <div id="message-management" className="space-y-6">
               <div>
                 <h2 className="text-2xl font-semibold text-slate-100 mb-4">Create new message</h2>
@@ -1920,7 +1920,7 @@ export default function AdminPage() {
                 </button>
               </div>
               <p className="text-sm leading-6 text-slate-400">
-                You are about to permanently delete <span className="font-semibold text-slate-200">{deleteTarget.label}</span>. This action cannot be undone.
+                You are about to permanently delete <span className="break-words font-semibold text-slate-200">{deleteTarget.label}</span>. This action cannot be undone.
               </p>
               <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <button
