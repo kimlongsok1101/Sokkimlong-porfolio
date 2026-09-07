@@ -74,6 +74,36 @@ export function useNotifications() {
           setUnreadCount((prev) => prev + 1);
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "notifications" },
+        (payload) => {
+          const deletedId = String(payload.old.id ?? "");
+          setNotifications((prev) => {
+            const deleted = prev.find((notification) => notification.id === deletedId);
+            if (deleted && !deleted.read) {
+              setUnreadCount((count) => Math.max(0, count - 1));
+            }
+            return prev.filter((notification) => notification.id !== deletedId);
+          });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "notifications" },
+        (payload) => {
+          const updated = normalizeNotificationRow(payload.new);
+          setNotifications((prev) =>
+            prev.map((notification) => (notification.id === updated.id ? updated : notification))
+          );
+          setUnreadCount((prev) => {
+            const previous = normalizeNotificationRow(payload.old);
+            if (previous.read && !updated.read) return prev + 1;
+            if (!previous.read && updated.read) return Math.max(0, prev - 1);
+            return prev;
+          });
+        }
+      )
       .subscribe((status) => {
         if (status !== "SUBSCRIBED") {
           console.debug("Channel subscription status:", status);
@@ -135,6 +165,34 @@ export function useNotifications() {
     }
   }, [notifications]);
 
+  const deleteNotifications = useCallback(async (ids: string[]) => {
+    const supabase = createSupabaseClient();
+    if (!supabase || ids.length === 0) return;
+
+    try {
+      await supabase.from("notifications").delete().in("id", ids);
+      setNotifications((prev) => prev.filter((notification) => !ids.includes(notification.id)));
+      setUnreadCount((prev) =>
+        Math.max(0, prev - notifications.filter((notification) => ids.includes(notification.id) && !notification.read).length)
+      );
+    } catch (error) {
+      console.error("Failed to delete notifications:", error);
+    }
+  }, [notifications]);
+
+  const deleteAllNotifications = useCallback(async () => {
+    const supabase = createSupabaseClient();
+    if (!supabase) return;
+
+    try {
+      await supabase.from("notifications").delete().neq("id", "");
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch (error) {
+      console.error("Failed to clear notifications:", error);
+    }
+  }, []);
+
   // NOTE: deleteNotification is kept for admin use only
   // Users cannot delete notifications via UI
 
@@ -145,5 +203,7 @@ export function useNotifications() {
     markAsRead,
     markAllAsRead,
     deleteNotification,
+    deleteNotifications,
+    deleteAllNotifications,
   };
 }

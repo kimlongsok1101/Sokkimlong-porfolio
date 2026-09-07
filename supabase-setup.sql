@@ -163,3 +163,21 @@ create table if not exists public.admin_login_audit (
 create index if not exists idx_admin_login_blocks_email on public.admin_login_blocks (email);
 create index if not exists idx_admin_login_blocks_ip on public.admin_login_blocks (ip);
 create index if not exists idx_admin_login_audit_created_at on public.admin_login_audit (created_at desc);
+
+-- Enable Supabase Realtime for content and notification updates.
+do $$
+declare
+  realtime_table text;
+begin
+  foreach realtime_table in array array['page_sections', 'projects', 'messages', 'notifications'] loop
+    if not exists (
+      select 1
+      from pg_publication_tables
+      where pubname = 'supabase_realtime'
+        and schemaname = 'public'
+        and tablename = realtime_table
+    ) then
+      execute format('alter publication supabase_realtime add table public.%I', realtime_table);
+    end if;
+  end loop;
+end $$;

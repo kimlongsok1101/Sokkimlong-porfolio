@@ -18,24 +18,28 @@ CREATE TABLE IF NOT EXISTS public.notifications (
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 -- Create policy to allow all users to read notifications
+DROP POLICY IF EXISTS "Everyone can read notifications" ON public.notifications;
 CREATE POLICY "Everyone can read notifications" 
   ON public.notifications 
   FOR SELECT 
   USING (true);
 
 -- Create policy to allow only admins to insert notifications
+DROP POLICY IF EXISTS "Only admins can insert notifications" ON public.notifications;
 CREATE POLICY "Only admins can insert notifications" 
   ON public.notifications 
   FOR INSERT 
   WITH CHECK (true);
 
 -- Create policy to allow users to update their own read status
+DROP POLICY IF EXISTS "Users can update read status" ON public.notifications;
 CREATE POLICY "Users can update read status" 
   ON public.notifications 
   FOR UPDATE 
   USING (true);
 
 -- Create policy to allow users to delete notifications
+DROP POLICY IF EXISTS "Users can delete notifications" ON public.notifications;
 CREATE POLICY "Users can delete notifications" 
   ON public.notifications 
   FOR DELETE 
@@ -47,3 +51,17 @@ CREATE INDEX IF NOT EXISTS idx_notifications_created_at
 
 CREATE INDEX IF NOT EXISTS idx_notifications_read 
   ON public.notifications(read);
+
+-- Enable realtime broadcasts for notification inserts, updates, and deletes.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime'
+      AND schemaname = 'public'
+      AND tablename = 'notifications'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+  END IF;
+END $$;

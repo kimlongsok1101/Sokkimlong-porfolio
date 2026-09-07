@@ -17,6 +17,7 @@ import { PROJECT_CATEGORIES } from "@/data/projects";
 import MatrixRainWrapper from "@/components/MatrixRainWrapper";
 import ParticleGrid from "@/components/ParticleGrid";
 import Navbar from "@/components/Navbar";
+import { useNotifications } from "@/lib/useNotifications";
 
 type ProjectCategoryFilter = ProjectCategory | "All";
 
@@ -68,9 +69,10 @@ type LoginHistoryRecord = {
 };
 
 type DeleteTarget = {
-  type: "project" | "message" | "history";
+  type: "project" | "message" | "history" | "notification" | "notifications" | "allNotifications";
   id: string;
   label: string;
+  ids?: string[];
 };
 
 const getMapsUrl = (location: string | null | undefined) => {
@@ -183,6 +185,14 @@ export default function AdminPage() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [deletingHistoryId, setDeletingHistoryId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+  const [selectedNotificationIds, setSelectedNotificationIds] = useState<string[]>([]);
+  const {
+    notifications,
+    loading: notificationsLoading,
+    deleteNotification,
+    deleteNotifications,
+    deleteAllNotifications,
+  } = useNotifications();
 
     const selectedImage = imageFiles.find((image) => image.url === projectForm.image) ?? null;
 
@@ -323,6 +333,36 @@ export default function AdminPage() {
         },
         async () => {
           await loadMessages();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      try {
+        supabase.removeChannel(channel);
+      } catch (e) {
+        // ignore
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    const supabase = createSupabaseClient();
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel("admin:page_sections")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "page_sections",
+        },
+        async () => {
+          await loadSections();
         }
       )
       .subscribe();
@@ -601,6 +641,18 @@ export default function AdminPage() {
     setDeleteTarget(target);
   };
 
+  const toggleNotificationSelection = (id: string) => {
+    setSelectedNotificationIds((current) =>
+      current.includes(id) ? current.filter((selectedId) => selectedId !== id) : [...current, id]
+    );
+  };
+
+  const toggleAllNotificationSelection = () => {
+    setSelectedNotificationIds((current) =>
+      current.length === notifications.length ? [] : notifications.map((notification) => notification.id)
+    );
+  };
+
   const signIn = async () => {
     const now = Date.now();
     if (loading || (cooldownUntil && now < cooldownUntil)) return;
@@ -777,8 +829,17 @@ export default function AdminPage() {
       await deleteProject(target.id);
     } else if (target.type === "message") {
       await deleteMessage(target.id);
-    } else {
+    } else if (target.type === "history") {
       await deleteLoginHistoryRecord(target.id);
+    } else if (target.type === "notification") {
+      await deleteNotification(target.id);
+      setSelectedNotificationIds((current) => current.filter((id) => id !== target.id));
+    } else if (target.type === "notifications") {
+      await deleteNotifications(target.ids ?? []);
+      setSelectedNotificationIds([]);
+    } else {
+      await deleteAllNotifications();
+      setSelectedNotificationIds([]);
     }
   };
 
@@ -1278,6 +1339,109 @@ export default function AdminPage() {
                   </p>
                 </div>
               </div>
+            </div>
+
+            <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
+              <div className="flex flex-col gap-4 border-b border-slate-800/80 pb-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-2xl font-semibold text-slate-100">Notifications</h2>
+                  <p className="text-slate-400 text-sm">Manage notifications shown across the portfolio.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={toggleAllNotificationSelection}
+                    disabled={notificationsLoading || notifications.length === 0}
+                    className="rounded-2xl bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {selectedNotificationIds.length === notifications.length && notifications.length > 0 ? "Clear selection" : "Select all"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      requestDelete({
+                        type: "notifications",
+                        id: "selected",
+                        ids: selectedNotificationIds,
+                        label: `${selectedNotificationIds.length} selected notification${selectedNotificationIds.length === 1 ? "" : "s"}`,
+                      })
+                    }
+                    disabled={selectedNotificationIds.length === 0}
+                    className="rounded-2xl bg-rose-500 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Delete selected
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      requestDelete({
+                        type: "allNotifications",
+                        id: "all",
+                        label: "all notifications",
+                      })
+                    }
+                    disabled={notifications.length === 0}
+                    className="rounded-2xl bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Clear all
+                  </button>
+                </div>
+              </div>
+
+              {notificationsLoading ? (
+                <p className="mt-5 text-sm text-slate-400">Loading notifications...</p>
+              ) : notifications.length === 0 ? (
+                <p className="mt-5 rounded-2xl border border-slate-800 bg-slate-950/70 p-5 text-sm text-slate-400">
+                  No notifications to manage.
+                </p>
+              ) : (
+                <div className="mt-5 space-y-3">
+                  {notifications.map((notification) => (
+                    <motion.div
+                      key={notification.id}
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className={`flex items-start gap-3 rounded-2xl border p-4 ${
+                        notification.read
+                          ? "border-slate-800 bg-slate-950/60"
+                          : "border-indigo-500/30 bg-indigo-500/10"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedNotificationIds.includes(notification.id)}
+                        onChange={() => toggleNotificationSelection(notification.id)}
+                        aria-label={`Select notification ${notification.title}`}
+                        className="mt-1 h-4 w-4 accent-indigo-500"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="rounded-full bg-indigo-500/15 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-indigo-300">
+                            {notification.type}
+                          </span>
+                          {!notification.read && <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-300">Unread</span>}
+                        </div>
+                        <h3 className="mt-2 font-semibold text-slate-100">{notification.title}</h3>
+                        <p className="mt-1 text-sm text-slate-400">{notification.description}</p>
+                        <p className="mt-2 text-xs text-slate-500">{new Date(notification.created_at).toLocaleString()}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          requestDelete({
+                            type: "notification",
+                            id: notification.id,
+                            label: notification.title,
+                          })
+                        }
+                        className="shrink-0 rounded-xl bg-rose-500/15 px-3 py-2 text-xs font-semibold text-rose-300 hover:bg-rose-500/25"
+                      >
+                        Delete
+                      </button>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
