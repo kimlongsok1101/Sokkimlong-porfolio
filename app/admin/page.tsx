@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Menu, X } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabaseClient";
 import { sendNotification } from "@/lib/sendNotification";
 import {
@@ -180,6 +181,8 @@ export default function AdminPage() {
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
   const [, setCooldownTick] = useState(0);
   const [adminPanelTab, setAdminPanelTab] = useState<AdminPanelTab>("editor");
+  const [mobileAdminMenuOpen, setMobileAdminMenuOpen] = useState(false);
+  const [mobileSectionNavOpen, setMobileSectionNavOpen] = useState(false);
   const [loginHistory, setLoginHistory] = useState<LoginHistoryRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [deletingHistoryId, setDeletingHistoryId] = useState<string | null>(null);
@@ -288,6 +291,14 @@ export default function AdminPage() {
 
     return () => window.clearInterval(interval);
   }, [cooldownUntil]);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileAdminMenuOpen ? "hidden" : "unset";
+
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [mobileAdminMenuOpen]);
 
   // Realtime subscription to projects table for live updates when admin adds/edits/deletes
   useEffect(() => {
@@ -859,11 +870,24 @@ export default function AdminPage() {
 
   const selectAdminSection = (section: string) => {
     setCurrentSection(section);
+    setMobileAdminMenuOpen(false);
+    setMobileSectionNavOpen(false);
     requestAnimationFrame(() => {
       document.getElementById("section-editor")?.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
+    });
+  };
+
+  const scrollToAdminPanel = (id: string) => {
+    setMobileAdminMenuOpen(false);
+    const target = document.getElementById(id);
+    if (!target) return;
+
+    target.scrollIntoView({
+      behavior: window.matchMedia("(max-width: 768px)").matches ? "auto" : "smooth",
+      block: "start",
     });
   };
 
@@ -1231,7 +1255,7 @@ export default function AdminPage() {
           transition={{ type: "spring", stiffness: 80, damping: 16 }}
           className="relative z-10 w-full min-w-0 rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-8 shadow-2xl shadow-slate-950/30 backdrop-blur-xl"
         >
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm uppercase tracking-[0.25em] text-indigo-300">Admin Dashboard</p>
               <h1 className="mt-3 text-2xl sm:text-4xl font-extrabold text-slate-100">Manage content & visitor messages</h1>
@@ -1240,7 +1264,17 @@ export default function AdminPage() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 sm:items-end">
+            <button
+              type="button"
+              onClick={() => setMobileAdminMenuOpen((current) => !current)}
+              className="shrink-0 rounded-xl border border-slate-700 bg-slate-800 p-2 text-slate-200 transition hover:bg-slate-700 md:hidden"
+              aria-label="Toggle admin navigation"
+              aria-expanded={mobileAdminMenuOpen}
+            >
+              {mobileAdminMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+
+            <div className="hidden flex-col gap-3 sm:items-end md:flex">
               <a
                 href="/admin/history"
                 className="inline-flex items-center justify-center rounded-2xl bg-slate-700 px-5 py-3 text-sm font-semibold text-slate-100 transition hover:bg-slate-600"
@@ -1264,6 +1298,82 @@ export default function AdminPage() {
             </div>
           </div>
 
+          <AnimatePresence>
+            {mobileAdminMenuOpen && (
+              <motion.nav
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="mt-5 overflow-hidden border-t border-slate-800 pt-5 md:hidden"
+                aria-label="Admin navigation"
+              >
+                <div className="flex flex-col gap-3 text-sm">
+                  <p className="px-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Manage</p>
+                  {sectionOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => selectAdminSection(option.value)}
+                      className={`rounded-xl px-3 py-3 text-left font-semibold transition ${
+                        currentSection === option.value
+                          ? "bg-indigo-600 text-white"
+                          : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                      }`}
+                    >
+                      {option.label} section
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => scrollToAdminPanel("message-management-summary")}
+                    className="rounded-xl bg-slate-800 px-3 py-3 text-left font-semibold text-slate-300 transition hover:bg-slate-700"
+                  >
+                    Visitor messages
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollToAdminPanel("notification-management")}
+                    className="rounded-xl bg-slate-800 px-3 py-3 text-left font-semibold text-slate-300 transition hover:bg-slate-700"
+                  >
+                    Notifications{adminUnreadCount > 0 ? ` (${adminUnreadCount})` : ""}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollToAdminPanel("login-history-management")}
+                    className="rounded-xl bg-slate-800 px-3 py-3 text-left font-semibold text-slate-300 transition hover:bg-slate-700"
+                  >
+                    Login history
+                  </button>
+                  <a
+                    href="/admin/history"
+                    onClick={() => setMobileAdminMenuOpen(false)}
+                    className="rounded-xl bg-slate-700 px-3 py-3 text-left font-semibold text-slate-100 transition hover:bg-slate-600"
+                  >
+                    View login history page
+                  </a>
+                  <button
+                    type="button"
+                    onClick={signOut}
+                    className="rounded-xl bg-slate-800 px-3 py-3 text-left font-semibold text-slate-100 transition hover:bg-slate-700"
+                  >
+                    Sign out
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileAdminMenuOpen(false);
+                      loadSections();
+                    }}
+                    className="rounded-xl bg-indigo-600 px-3 py-3 text-left font-semibold text-white transition hover:bg-indigo-500"
+                  >
+                    Refresh sections
+                  </button>
+                </div>
+              </motion.nav>
+            )}
+          </AnimatePresence>
+
           {feedback && (
             <div className="mt-6 rounded-3xl border border-indigo-500/20 bg-indigo-500/10 px-4 py-3 text-sm text-indigo-100">
               {feedback}
@@ -1280,14 +1390,29 @@ export default function AdminPage() {
         >
           <div className="min-w-0 space-y-8">
             <div className="admin-box sticky top-4 z-30 w-full min-w-0 rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-6 shadow-xl shadow-slate-950/20 backdrop-blur-xl">
-              <h2 className="mb-4 text-lg font-semibold text-slate-100">Admin sections</h2>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-lg font-semibold text-slate-100">Admin sections</h2>
+                <button
+                  type="button"
+                  onClick={() => setMobileSectionNavOpen((current) => !current)}
+                  className="rounded-xl border border-slate-700 bg-slate-800 p-2.5 text-slate-200 transition hover:bg-slate-700 sm:hidden"
+                  aria-label="Toggle admin sections"
+                  aria-expanded={mobileSectionNavOpen}
+                  aria-controls="admin-section-links"
+                >
+                  {mobileSectionNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </button>
+              </div>
+              <div
+                id="admin-section-links"
+                className={`${mobileSectionNavOpen ? "grid" : "hidden"} mt-4 grid-cols-1 gap-2 sm:mt-4 sm:flex sm:flex-wrap sm:gap-3 min-[420px]:grid-cols-2`}
+              >
                 {sectionOptions.map((option) => (
                   <button
                     key={option.value}
                     type="button"
                     onClick={() => selectAdminSection(option.value)}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    className={`w-full min-w-0 break-words rounded-full px-2 py-3 text-center text-xs font-semibold transition sm:w-auto sm:px-4 sm:py-2 sm:text-sm ${
                       currentSection === option.value
                         ? "bg-indigo-600 text-white"
                         : "bg-slate-800 text-slate-300 hover:bg-slate-700"
@@ -1298,22 +1423,22 @@ export default function AdminPage() {
                 ))}
                 <button
                   type="button"
-                  onClick={() => document.getElementById("notification-management")?.scrollIntoView({ behavior: "smooth" })}
-                  className="rounded-full bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700"
+                  onClick={() => scrollToAdminPanel("notification-management")}
+                  className="w-full min-w-0 break-words rounded-full bg-slate-800 px-2 py-3 text-center text-xs font-semibold text-slate-300 transition hover:bg-slate-700 sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
                 >
                   Notifications{adminUnreadCount > 0 ? ` (${adminUnreadCount})` : ""}
                 </button>
                 <button
                   type="button"
-                  onClick={() => document.getElementById("message-management-summary")?.scrollIntoView({ behavior: "smooth" })}
-                  className="rounded-full bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700"
+                  onClick={() => scrollToAdminPanel("message-management-summary")}
+                  className="w-full min-w-0 break-words rounded-full bg-slate-800 px-2 py-3 text-center text-xs font-semibold text-slate-300 transition hover:bg-slate-700 sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
                 >
                   Visitor messages
                 </button>
                 <button
                   type="button"
-                  onClick={() => document.getElementById("login-history-management")?.scrollIntoView({ behavior: "smooth" })}
-                  className="rounded-full bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700"
+                  onClick={() => scrollToAdminPanel("login-history-management")}
+                  className="w-full min-w-0 break-words rounded-full bg-slate-800 px-2 py-3 text-center text-xs font-semibold text-slate-300 transition hover:bg-slate-700 sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
                 >
                   Login History
                 </button>
