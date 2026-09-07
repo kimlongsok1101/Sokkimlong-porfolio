@@ -1405,7 +1405,11 @@ export default function AdminPage() {
               </div>
               <div
                 id="admin-section-links"
-                className={`${mobileSectionNavOpen ? "grid" : "hidden"} mt-4 grid-cols-1 gap-2 sm:mt-4 sm:flex sm:flex-wrap sm:gap-3 min-[420px]:grid-cols-2`}
+                className={`grid grid-cols-1 gap-2 overflow-hidden transition-[max-height,opacity] duration-300 ease-out sm:mt-4 sm:flex sm:flex-wrap sm:gap-3 min-[420px]:grid-cols-2 ${
+                  mobileSectionNavOpen
+                    ? "pointer-events-auto max-h-[32rem] opacity-100"
+                    : "pointer-events-none max-h-0 opacity-0 sm:pointer-events-auto sm:max-h-[32rem] sm:opacity-100"
+                }`}
               >
                 {sectionOptions.map((option) => (
                   <button
