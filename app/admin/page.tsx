@@ -215,6 +215,9 @@ export default function AdminPage() {
     () => sessionEmail?.toLowerCase() === ADMIN_EMAIL.toLowerCase(),
     [sessionEmail]
   );
+  const cooldownSeconds = cooldownUntil
+    ? Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000))
+    : 0;
 
   useEffect(() => {
     let authListenerSubscription: { unsubscribe: () => void } | null = null;
@@ -276,6 +279,7 @@ export default function AdminPage() {
     const interval = window.setInterval(() => {
       if (cooldownUntil <= Date.now()) {
         setCooldownUntil(null);
+        setFeedback(null);
         return;
       }
 
@@ -694,7 +698,7 @@ export default function AdminPage() {
         if (retryAfterSeconds > 0) {
           const nextCooldown = Date.now() + retryAfterSeconds * 1000;
           setCooldownUntil(nextCooldown);
-          setFeedback(`${result.error ?? "Too many attempts."} Please wait ${retryAfterSeconds} seconds.`);
+          setFeedback(result.error ?? "Too many attempts.");
         } else {
           setCooldownUntil(null);
           setFeedback(result.error ?? "Unable to sign in.");
@@ -1182,11 +1186,16 @@ export default function AdminPage() {
             />
           </label>
 
-          {feedback && <p className="text-sm text-rose-300 mb-4">{feedback}</p>}
+          {feedback && cooldownSeconds === 0 && (
+            <p className="text-sm text-rose-300 mb-4">
+              {feedback}
+              {cooldownSeconds > 0 ? ` Please wait ${cooldownSeconds} seconds.` : ""}
+            </p>
+          )}
 
           {cooldownUntil && cooldownUntil > Date.now() && (
             <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
-              Login is temporarily locked. Please wait a moment before trying again.
+              Too many login attempts. Please wait {cooldownSeconds} seconds before trying again.
             </div>
           )}
 
@@ -1211,7 +1220,7 @@ export default function AdminPage() {
             {loading
               ? "Signing in..."
               : cooldownUntil && cooldownUntil > Date.now()
-                ? "Please wait"
+                ? `Please wait ${cooldownSeconds}s`
                 : captchaQuestion
                   ? "Verify & sign in"
                   : "Sign in as admin"}

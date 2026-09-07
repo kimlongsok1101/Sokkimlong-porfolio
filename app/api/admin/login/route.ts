@@ -401,6 +401,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message, retryAfter: DEFAULT_RETRY_AFTER }, { status: 401 });
   }
 
+  const authenticatedEmail = data.user?.email?.trim().toLowerCase() ?? "";
+  if (!authenticatedEmail || authenticatedEmail !== adminEmail) {
+    await authSupabase.auth.signOut();
+
+    if (canPersist) {
+      await logAuditAttempt(supabase, email, ip, "blocked", "authenticated_email_mismatch", {
+        ...baseAuditDetails,
+        authenticatedEmail,
+      });
+    }
+
+    return NextResponse.json({ error: "Invalid admin login request." }, { status: 403 });
+  }
+
   if (canPersist) {
     await clearFailureRecord(supabase, email, ip);
     await logAuditAttempt(supabase, email, ip, "success", "successful_login", {
