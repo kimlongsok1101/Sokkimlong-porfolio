@@ -189,6 +189,7 @@ export default function AdminPage() {
   const [selectedNotificationIds, setSelectedNotificationIds] = useState<string[]>([]);
   const {
     notifications,
+    unreadCount: adminUnreadCount,
     loading: notificationsLoading,
     deleteNotification,
     deleteNotifications,
@@ -1318,6 +1319,27 @@ export default function AdminPage() {
                     {option.label}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  onClick={() => document.getElementById("notification-management")?.scrollIntoView({ behavior: "smooth" })}
+                  className="rounded-full bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700"
+                >
+                  Notifications{adminUnreadCount > 0 ? ` (${adminUnreadCount})` : ""}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => document.getElementById("message-management")?.scrollIntoView({ behavior: "smooth" })}
+                  className="rounded-full bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700"
+                >
+                  Visitor messages
+                </button>
+                <button
+                  type="button"
+                  onClick={() => document.getElementById("login-history-management")?.scrollIntoView({ behavior: "smooth" })}
+                  className="rounded-full bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700"
+                >
+                  Login History
+                </button>
               </div>
               {renderSectionEditor()}
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1335,7 +1357,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-8 shadow-xl shadow-slate-950/20">
+            <div id="message-management-summary" className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-8 shadow-xl shadow-slate-950/20">
               <div className="flex items-center justify-between mb-4 gap-3 flex-col sm:flex-row">
                 <div>
                   <h2 className="text-2xl font-semibold text-slate-100">Visitor messages</h2>
@@ -1362,7 +1384,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-8 shadow-xl shadow-slate-950/20">
+            <div id="notification-management" className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-8 shadow-xl shadow-slate-950/20">
               <div className="flex flex-col gap-4 border-b border-slate-800/80 pb-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-2xl font-semibold text-slate-100">Notifications</h2>
@@ -1465,7 +1487,7 @@ export default function AdminPage() {
               )}
             </div>
 
-            <div className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-8 shadow-xl shadow-slate-950/20">
+            <div id="login-history-management" className="admin-box rounded-3xl border border-slate-800/80 bg-slate-900/90 p-4 sm:p-8 shadow-xl shadow-slate-950/20">
               <div className="flex items-center justify-between mb-4 gap-3 flex-col sm:flex-row">
                 <div>
                   <h2 className="text-2xl font-semibold text-slate-100">Login History</h2>
